@@ -56,9 +56,12 @@
 		url : action,
 		method : method,
 		data : data,
-		dataType : "html",
+		dataType : "json", // 응답데이터의 형태 - request headers에 나타남.
 		success : function(resp/*html*/, status, jqXHR) {
-			resultArea.html(resp);
+			// {"expression":"6! = 720"}
+// 			resultArea.html(resp);
+			resultArea.html(resp.expression);
+
 		},
 		error : function(jqXHR, status, error) {
 			console.log(jqXHR);
