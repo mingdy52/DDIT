@@ -12,7 +12,6 @@ public class ClockServlet extends AbstractUsingTmplServlet {
 
 	@Override
 	protected String getContentType() {
-		// TODO Auto-generated method stub
 		return "text/html;charset=UTF-8";
 	}
 

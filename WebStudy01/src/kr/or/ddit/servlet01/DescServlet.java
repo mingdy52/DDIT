@@ -46,7 +46,6 @@ public class DescServlet extends HttpServlet{
 	
 	@Override
 	public void init(ServletConfig config) throws ServletException {
-		// TODO Auto-generated method stub
 		super.init(config);
 		System.out.println(this.getClass().getName()+"초기화");
 		String initValue = config.getInitParameter("param1");

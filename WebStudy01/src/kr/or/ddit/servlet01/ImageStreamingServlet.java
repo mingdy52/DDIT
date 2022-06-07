@@ -68,7 +68,7 @@ public class ImageStreamingServlet extends HttpServlet{
 		byte[] buffer = new byte[1024];
 		
 		int length =-1;
-		while((length =is.read(buffer))!=-1) {
+		while((length = is.read(buffer))!=-1) {
 			os.write(buffer , 0 , length);
 		}
 		is.close();

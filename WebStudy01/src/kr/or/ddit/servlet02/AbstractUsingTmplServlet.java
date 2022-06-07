@@ -55,6 +55,7 @@ public abstract class AbstractUsingTmplServlet extends HttpServlet {
 	  
       //String tmplPath = "/02/gugudan.tmpl"; // =URL  webapp: 가상폴더이기에 포함이 안된다. 그래서 바로 WebStudy01에서 바로 찾는다.
       String tmplPath = req.getServletPath();
+      
       //IO ~~Stream : byte stream , ~~Reader/~~Writer : character stream
       InputStream is = application.getResourceAsStream(tmplPath); //1차 stream 바이트
       InputStreamReader isr = new InputStreamReader(is); //연결형 2차 stream

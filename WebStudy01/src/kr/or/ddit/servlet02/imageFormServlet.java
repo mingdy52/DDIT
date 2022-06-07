@@ -14,7 +14,6 @@ public class imageFormServlet extends AbstractUsingTmplServlet {
     //concreate class 의역할을 하고 있음 -hook method
 	@Override
 	protected String getContentType() {
-		// TODO Auto-generated method stub
 		return "text/html;charset=UTF-8";
 	}
 

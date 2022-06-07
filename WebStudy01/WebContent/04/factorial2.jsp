@@ -51,6 +51,7 @@
 	let action = this.action; //$(this).attr("action");
 	let method = this.method; 
 	let data = $(this).serialize(); // Query String 생성 ex) param1 = value1&param2 = value2
+	// jquery ajax로 호출하기 전에 serialize를 해주면 form 안에 값들을 한 번에 전송 가능한 data로 만들 수 있어 많은 data를 보낼 때 유용하다.
 	console.log(data)
 	$.ajax({
 		url : action,

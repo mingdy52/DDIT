@@ -65,14 +65,19 @@ crossorigin="anonymous">
 </pre>
 
 <script>
-var xhr = new XMLHttpRequest();
+var xhr = new XMLHttpRequest(); 
+//XMLHttpRequest (XHR) 객체는 서버와 상호작용할 때 사용합니다. XHR을 사용하면 페이지의 새로고침 없이도 URL에서 데이터를 가져올 수 있습니다. 
 xhr.onload = function(){
-	if(xhr.status == 200 && xhr.onready) {
+	// 브라우저가 서버로부터 응답을 받을 때 발생하는 이벤트. 이벤트가 발생하면 함수가 호출된다. 
+	// 익명 함수는 xhr 객체의 status 속성 값을 검사해 서버의 응답이 정상인지 확인한다.
+	if(xhr.status == 200) {
 		document.getElementById('#d1').innerHTML = xhr.responseTest
 	}
 };
-xhr.open('GET', 'data/data.html')
-xhr.send()
+xhr.open('GET', '<%=request.getContextPath() %>/04/factorial.do', true);
+// 세 개의 매개변수(HTTP 메서드/요청 처리할 페이지의 URL/요청이 비동기로 처리될 것인지 지정하는 불리언 값)를 정의한다.
+xhr.send();
+// 준비된 요청을 추가 정보와 함께 전달한다.
 </script>
 </body>
 </html>
