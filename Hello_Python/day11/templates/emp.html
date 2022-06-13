@@ -6,7 +6,12 @@
 <!-- <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script> -->
 <script src="jquery-3.6.0.min.js"></script>
 <script>
-function myinit(){
+
+function fn_init(){
+	fn_list();
+}
+
+function fn_list(){
 // 	alert("myclick");
 // 	var obj = document.getElementById("it");
 // 	obj.value = "굿이브닝";
@@ -21,7 +26,7 @@ function myinit(){
 			addr : '1'
 		},
 		success : function(res){
-			fn_list(res);
+			fn_list_callback(res);
 		}
 		
 	});
@@ -40,7 +45,7 @@ function fn_del(){
 		success : function(res){
 			var cnt = res.cnt;
 			if (cnt ==1){
-				myinit()
+				fn_list()
 				document.querySelector("input[name='e_id']").value = "";
 				document.querySelector("input[name='e_name']").value = "";
 				document.querySelector("input[name='sex']").value = "";
@@ -54,35 +59,35 @@ function fn_del(){
 }
 
 function fn_mod(){
-	var e_id = document.querySelector("input[name='e_id']").value;
-	var e_name = document.querySelector("input[name='e_name']").value;
-	var sex = document.querySelector("input[name='sex']").value;
-	var addr = document.querySelector("input[name='addr']").value;
-	
-	$.ajax({
-		type : "POST",
-		url : "emp_mod.ajax",
-		data : {
-			e_id : e_id,
-			e_name : e_name,
-			sex : sex,
-			addr : addr
-		},
-		success : function(res){
-			var cnt = res.cnt;
-			if (cnt ==1){
-				myinit()
-				document.querySelector("input[name='e_id']").value = "";
-				document.querySelector("input[name='e_name']").value = "";
-				document.querySelector("input[name='sex']").value = "";
-				document.querySelector("input[name='addr']").value = "";
-			} else {
-				alert("수정 도중 문제가 생겼습니다.")
-			}
-		}
-		
-	});
-}
+    var e_id = document.querySelector("input[name='e_id']").value;
+    var e_name = document.querySelector("input[name='e_name']").value;
+    var sex = document.querySelector("input[name='sex']").value;
+    var addr = document.querySelector("input[name='addr']").value;
+    $.ajax({
+       type : "POST",
+       url : "emp_mod.ajax",
+       data : {
+          e_id : e_id,
+          e_name : e_name,
+          sex : sex,
+          addr : addr,
+       },
+       success : function(res) {
+          var cnt = res.cnt;
+          if(cnt == "1"){
+              fn_list();
+              document.querySelector("input[name='e_id']").value = "";
+              document.querySelector("input[name='e_name']").value = "";
+              document.querySelector("input[name='sex']").value = "";
+              document.querySelector("input[name='addr']").value = "";
+          } else {
+             alert("수정도중 문제가 생겼습니다.");
+          }
+
+
+       }
+    });
+ }
 
 function fn_add(){
 	var e_id = document.querySelector("input[name='e_id']").value;
@@ -102,7 +107,7 @@ function fn_add(){
 		success : function(res){
 			var cnt = res.cnt;
 			if (cnt ==1){
-				myinit()
+				fn_list()
 				document.querySelector("input[name='e_id']").value = "";
 				document.querySelector("input[name='e_name']").value = "";
 				document.querySelector("input[name='sex']").value = "";
@@ -134,7 +139,7 @@ function fn_one(e_id){
 	});
 }
 
-function fn_list(res){
+function fn_list_callback(res){
 	var list = res;
 	var trs = ""
 	for(var i = 0; i<list.length; i++){
@@ -158,7 +163,7 @@ function fn_list(res){
 }
 </script>
 </head>
-<body onload="myinit()">
+<body onload="fn_list()">
 
 
 	<table border="1px">
