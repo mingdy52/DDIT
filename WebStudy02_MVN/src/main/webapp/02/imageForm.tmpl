@@ -1,0 +1,38 @@
+<html>
+ <head>
+ 	<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+ </head>
+	<body>
+		<h4>이미지 선택</h4>
+		<form action="./streaming.do" id="imageForm"> <!-- .은 02폴더가 됨 -->
+			<select name="image">
+			
+				<%=options %>
+			</select>
+			<input type="submit" value="전송"/>
+			<div id="imageArea">
+				<!-- http://localhost/WebStudy01/02/imageForm.tmpl여기서 파악 -->
+				<!-- <img src="./streaming.do?image=%v"/>-->
+			</div>
+			<script>
+			      let selectTag = $("select[name='image']").on("change",function(){
+			         $(this.form).trigger("submit");
+			         $(this.form).submit();
+			      });
+			         let imageArea = $("#imageArea");
+			      const SRCPTRN = "./streaming.do?image=%v";
+			      $("#imageForm").on("submit", function(event){
+			      event.preventDefault();
+			         //<img src="./streaming.do?image=%v"/>
+			         let imageName = $(this.image).val();
+			         let imgTag = $("<img>").attr("src", SRCPTRN.replace("%v", ""));
+			         imageArea.html(imgTag);
+			      return false;
+			   });
+			    </script>
+						
+			
+		</form>
+	</body>
+	
+</html>
