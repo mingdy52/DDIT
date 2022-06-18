@@ -17,10 +17,10 @@
 	
 	<%
 		// 캐시를 저장하지 않을 때 : no-cache(O), no-store(X):
-// 		response.setHeader("Pragma", "no-cache");
-// 		response.setHeader("Pragma", "no-store");
-// 		response.setHeader("Cache-Control", "no-cache");
-		response.setHeader("Cac[cache-Control", "no-store");
+		response.setHeader("Pragma", "no-cache"); // 캐시를 남기지마
+		response.addHeader("Pragma", "no-store"); // 저장하지마
+		response.setHeader("Cache-Control", "no-cache"); // 캐시를 남기지마
+		response.addHeader("Cache-Control", "no-store"); // 저장하지마
 		Calendar cal = Calendar.getInstance();
 		cal.add(Calendar.DATE,2);
 		response.setDateHeader("Expires",cal.getTimeInMillis());
