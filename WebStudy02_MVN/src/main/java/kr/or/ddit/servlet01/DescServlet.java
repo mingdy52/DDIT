@@ -65,6 +65,7 @@ public class DescServlet extends HttpServlet{
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		resp.getWriter().println("Desc Servlet");
 		System.out.println("do Get 실행");
+		System.out.println("application hashcode : " + getServletContext().hashCode());
 		
 	}
 	 
