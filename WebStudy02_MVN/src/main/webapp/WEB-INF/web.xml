@@ -25,5 +25,10 @@
   	</cookie-config>
   </session-config>
   
+  <error-page>
+  	<error-code>404</error-code>
+  	<location>/errors/error404.jsp</location>
+  </error-page>
+  
 </web-app>
 

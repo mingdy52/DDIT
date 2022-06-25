@@ -42,7 +42,7 @@
 // 				pageContext.forward("/09/implicitObject.jsp");
 // 				pageContext.include("/09/implicitObject.jsp");
 			%>
-			<jsp:include page="/09/implicitObject.jsp" />
+<%-- 			<jsp:include page="/09/implicitObject.jsp" /> --%>
 			custom tag 사용 방법 : <prefix:태그명 속성명="속성값" />
 		추가 코드
 	</pre>
