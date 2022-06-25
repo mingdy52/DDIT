@@ -12,14 +12,15 @@ import javax.servlet.http.HttpSession;
 
 import org.apache.commons.lang3.StringUtils;
 
+import kr.or.ddit.enumpkg.ServiceResult;
+import kr.or.ddit.member.service.AuthenticateService;
+import kr.or.ddit.member.service.AuthenticateServiceImpl;
 import kr.or.ddit.vo.MemberVO;
 
 @WebServlet("/login/loginProcess.do")
 public class LoginProcessServlet extends HttpServlet {
 	
-	private boolean authenticate(MemberVO member) {
-		return member.getMemId().equals(member.getMemPass());
-	}
+	AuthenticateService service = new AuthenticateServiceImpl();
 	
 	private boolean validate(MemberVO member) {
 		return StringUtils.isNoneBlank( member.getMemId()) && StringUtils.isNoneBlank(member.getMemPass());
@@ -34,31 +35,41 @@ public class LoginProcessServlet extends HttpServlet {
 		}
 		
 		req.setCharacterEncoding("UTF-8"); // 모든 컨트롤러에서 제일 먼저 들어거야함!
-		MemberVO member = new MemberVO();
 		
-		member.setMemId(req.getParameter("memId"));
-		member.setMemPass(req.getParameter("memPass"));
+		MemberVO inputData = new MemberVO();
+		inputData.setMemId(req.getParameter("memId"));
+		inputData.setMemPass(req.getParameter("memPass"));
 		
 		// 1. 검증
-		boolean valid = validate(member);
+		boolean valid = validate(inputData);
 		boolean redirect = false;
 		String view = null;
 		
 		if(valid) {
 //			- 통과
 //				2. 처리(로그인 여부 판단)
-				if(authenticate(member)) {
+				ServiceResult result = service.authenticate(inputData);
+				if(ServiceResult.OK.equals(result)) {
 //					Post-Redirect-Get 패턴
 //					- 로그인 성공 : welcome 페이지로 이동(redirect) - get
+					MemberVO authMember = inputData;
 					session.setAttribute("message", "로그인 성공");
-					session.setAttribute("authMember", member);
+					session.setAttribute("authMember", authMember);
 					redirect = true;
 					// redirect로 메시지를 전하려면 redirect보다 생명주기가 긴 session을 이용한다. 또 다른 요청으로 넘어가니까.
 					view = "/";
 					
 				} else {
 //					- 실패 : loginForm 으로 이동(forward) - post
-					session.setAttribute("message", "로그인 실패");
+					String message = null;
+					if(ServiceResult.NOTEXIST.equals(result)) {
+						message = "회원 가입이 필요함.";
+						
+					} else {
+						message = "비밀번호 오류.";
+						
+					}
+					session.setAttribute("message", message);
 					redirect = true;
 					view = "/login/loginForm.jsp";
 					

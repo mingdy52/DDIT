@@ -15,6 +15,7 @@
 			alert("<%=message%>");
 		</script>
 		<%
+		session.removeAttribute("message");
 	}
 %>
 </head>

@@ -2,11 +2,7 @@
 <%@page import="org.apache.commons.lang3.StringUtils"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>Insert title here</title>
+
 <%
 	request.setCharacterEncoding("utf-8");
 	String message = request.getParameter("message");
@@ -25,19 +21,18 @@
 		
 	}
 %>
-<script type="text/javascript" src="<%=request.getContextPath() %>/resources/js/jquery-3.6.0.min.js"></script>
-</head>
-<body>
+
 	<h4>웰컴 페이지</h4>
 	<%
    MemberVO authMember =(MemberVO)session.getAttribute("authMember");
    if(authMember==null){
    %>
    <a href="<%=request.getContextPath() %>/login/loginForm.jsp">로그인</a>
+   <a href="<%=request.getContextPath() %>/member/memberInsert.do">회원가입</a>
    <% 
    }else{
       %>
-      <%=authMember.getMemId() %>님
+      <%=authMember.getMemName() %>님
       <form method="post" action="${pageContext.request.contextPath}/login/logout.do" id="logoutForm"></form>
       <a href="${pageContext.request.contextPath}/login/logout.do" id="logoutBtn">로그아웃</a>
       <script>
@@ -50,5 +45,3 @@
       <%
    }
 %>
-</body>
-</html>

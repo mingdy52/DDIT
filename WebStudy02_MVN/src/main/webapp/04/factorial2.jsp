@@ -1,14 +1,14 @@
 <%@page import="java.util.Objects"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
-<!DOCTYPE html>
-<html>
-<head>
-<script type="text/javascript" src="<%=request.getContextPath() %>/resources/js/jquery-3.6.0.min.js"></script>
-<meta charset="UTF-8">
-<title>04/factorial.jsp</title>
-</head>
-<body>
+<!-- <!DOCTYPE html> -->
+<!-- <html> -->
+<!-- <head> -->
+<%-- <script type="text/javascript" src="<%=request.getContextPath() %>/resources/js/jquery-3.6.0.min.js"></script> --%>
+<!-- <meta charset="UTF-8"> -->
+<!-- <title>04/factorial.jsp</title> -->
+<!-- </head> -->
+<!-- <body> -->
 <h4>Factorial 연산 처리</h4>
 <!-- 1. Model1 -> Model2 -> ajax -> XML/JSON(Marshalling) -->
 
@@ -79,5 +79,5 @@
 	});
 	console.log(facForm);
 </script>
-</body>
-</html>
+<!-- </body> -->
+<!-- </html> -->
