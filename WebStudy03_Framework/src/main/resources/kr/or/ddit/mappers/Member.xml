@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.member.dao.MemberDAO">
+
+	<select id="selectMemberForAuth" parameterType="MemberVO" resultType="MemberVO">
+		 SELECT MEM_ID, MEM_PASS, MEM_NAME, MEM_HP, MEM_ADD1  
+		 FROM MEMBER                                          
+		 WHERE MEM_ID = #{memId}  AND MEM_DELETE IS NULL	         
+	</select>
+	
+	<sql id="searchFrag"> 
+		WHERE MEM_DELETE IS NULL
+			<trim prefix="AND">
+			<!-- trim 안에 만족하는 조건문이 있으면 그 때 and를 붙임. 만족하는 조건문이 없으면 사라짐. -->
+				<if test="simpleCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)"> <!-- ognl 문법 -->
+					<choose>
+						<when test="simpleCondition.searchType eq 'name'">
+			        		INSTR(MEM_NAME, #{simpleCondition.searchWord}) > 0
+						</when>
+						<when test="simpleCondition.searchType eq 'address'">
+							INSTR(MEM_ADD1, #{simpleCondition.searchWord}) > 0
+						</when>
+						<otherwise>
+								(INSTR(MEM_NAME, #{simpleCondition.searchWord}) > 0
+								OR
+								INSTR(MEM_ADD1, #{simpleCondition.searchWord}) > 0)
+						</otherwise>
+					</choose>
+				</if>
+			</trim>
+	</sql>
+	
+	<select id="selectTotalRecord" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(*)
+		FROM MEMBER
+		<include refid="searchFrag"></include>
+		
+	</select>
+	
+	<select id="selectMemberList" parameterType="PagingVO" resultType="MemberVO">
+<!-- 	마이바티스 내부에서 resultType="MemberVO" 에 대한 리플레션을 처리한 것 -->
+		SELECT B.*
+		FROM
+		(
+			SELECT ROWNUM RNUM, A.*
+			FROM
+			    (
+			        SELECT MEM_ID, MEM_NAME, MEM_HP, MEM_ADD1, MEM_MAIL, MEM_MILEAGE
+			        FROM MEMBER
+			        <include refid="searchFrag"></include>
+			        ORDER BY ROWID DESC
+			    )A
+		)B
+		<![CDATA[
+			WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+		]]>     
+		           
+	</select>
+	
+<!-- 		멤버 기본형에 대한 맵핑 -->
+	<resultMap type="MemberVO" id="memberMap" autoMapping="true">
+		<id property="memId" column="MEM_ID"/>
+		
+<!-- 		객체 참조에 대한 맵핑 collection: has many -->
+		<collection property="buyList" javaType="java.util.HashSet" ofType="ProdVO" autoMapping="true">
+		
+<!-- 		association : has a -->
+			<association property="buyer" javaType="BuyerVO" autoMapping="true"/>
+		</collection>
+<!-- 			<result property="prodId" column="PROD_ID"/> -->
+<!-- 		프로퍼티가 컬렉션일 때 사용 -->
+	</resultMap>
+	
+	<select id="selectMember" parameterType="string" resultType="MemberVO" resultMap="memberMap">
+		WITH PRODVIEW AS (
+	      SELECT PROD.*, BUYER_NAME, LPROD_NM
+	      FROM PROD INNER JOIN BUYER ON(PROD_BUYER = BUYER_ID)
+	              INNER JOIN LPROD ON(PROD_LGU = LPROD_GU)       
+	      ), 
+	      CARTVIEW AS(
+	          SELECT DISTINCT CART_MEMBER, CART_PROD
+	            FROM CART
+	      ),
+	      CARTPROD AS(
+	      SELECT CARTVIEW.*, PRODVIEW.* 
+	      FROM CARTVIEW INNER JOIN PRODVIEW ON(CART_PROD = PROD_ID)
+	      WHERE CART_MEMBER = 'b001'
+	      )
+	      <!-- SELECT MEMBER.*,
+	             PROD_ID, PROD_NAME, BUYER_NAME, LPROD_NM, PROD_COST, PROD_PRICE
+	        FROM MEMBER LEFT OUTER JOIN CARTPROD ON (MEM_ID = CART_MEMBER)
+	       WHERE MEM_ID = #{memId} -->
+	       SELECT MEM_ID,       MEM_PASS,       MEM_NAME,                                 
+	          MEM_REGNO1,       MEM_REGNO2,       TO_CHAR(MEM_BIR, 'YYYY-MM-DD') MEM_BIR,   
+	          MEM_ZIP,       MEM_ADD1,       MEM_ADD2,                                 
+	          MEM_HOMETEL,       MEM_COMTEL,       MEM_HP,                               
+	          MEM_MAIL,       MEM_JOB,       MEM_LIKE,                                 
+	          MEM_MEMORIAL,   TO_CHAR(MEM_MEMORIALDAY, 'YYYY-MM-DD') MEM_MEMORIALDAY,   
+	          MEM_MILEAGE,    MEM_DELETE    
+	         , PROD_ID, PROD_NAME,  PROD_COST, PROD_PRICE
+	         , BUYER_NAME, LPROD_NM
+	     FROM MEMBER LEFT OUTER JOIN CARTPROD ON(MEM_ID = CART_MEMBER)
+	    WHERE MEM_ID=#{memId} 
+
+	
+	</select>
+	<insert id="insertMember" parameterType="MemberVO">
+		INSERT INTO MEMBER (                                                                 
+			MEM_ID
+			,MEM_PASS
+			,MEM_NAME
+			,MEM_REGNO1
+			,MEM_REGNO2
+			,MEM_BIR
+			,MEM_ZIP
+			,MEM_ADD1
+			,MEM_ADD2
+			,MEM_HOMETEL
+			,MEM_COMTEL
+			,MEM_HP
+			,MEM_MAIL
+			,MEM_JOB
+			,MEM_LIKE
+			,MEM_MEMORIAL
+			,MEM_MEMORIALDAY
+			,MEM_MILEAGE
+		) VALUES (                                                                       
+			 #{memId,jdbcType=VARCHAR}
+			, #{memPass,jdbcType=VARCHAR}
+			, #{memName,jdbcType=VARCHAR}
+			, #{memRegno1,jdbcType=VARCHAR}
+			, #{memRegno2,jdbcType=VARCHAR}
+			, TO_DATE(#{memBir,jdbcType=DATE}, 'YYYY-MM-DD')
+			, #{memZip,jdbcType=VARCHAR}
+			, #{memAdd1,jdbcType=VARCHAR}
+			, #{memAdd2,jdbcType=VARCHAR}
+			, #{memHometel,jdbcType=VARCHAR}
+			, #{memComtel,jdbcType=VARCHAR}
+			, #{memHp,jdbcType=VARCHAR}
+			, #{memMail,jdbcType=VARCHAR}
+			, #{memJob,jdbcType=VARCHAR}
+			, #{memLike,jdbcType=VARCHAR}
+			, #{memMemorial,jdbcType=VARCHAR}
+			, TO_DATE(#{memMemorialday,jdbcType=DATE}, 'YYYY-MM-DD')
+			, 1000
+		)		                                                                             
+	</insert>
+	<update id="updateMember" parameterType="MemberVO">
+		UPDATE MEMBER
+		SET
+			MEM_NAME = #{memName,jdbcType=VARCHAR}
+			, MEM_ZIP = #{memZip,jdbcType=CHAR}
+			, MEM_ADD1 = #{memAdd1,jdbcType=VARCHAR}
+			, MEM_ADD2 = #{memAdd2,jdbcType=VARCHAR}
+			, MEM_HOMETEL = #{memHometel,jdbcType=VARCHAR}
+			, MEM_COMTEL = #{memComtel,jdbcType=VARCHAR}
+			, MEM_HP = #{memHp,jdbcType=VARCHAR}
+			, MEM_MAIL = #{memMail,jdbcType=VARCHAR}
+			, MEM_JOB = #{memJob,jdbcType=VARCHAR}
+			, MEM_LIKE = #{memLike,jdbcType=VARCHAR}
+			, MEM_MEMORIAL = #{memMemorial,jdbcType=VARCHAR}
+			, MEM_MEMORIALDAY = #{memMemorialday,jdbcType=DATE}
+		WHERE MEM_ID = #{memId,jdbcType=VARCHAR}
+	</update>
+	<update id="deleteMember" parameterType="string">
+		UPDATE MEMBER
+		SET MEM_DELETE = 'Y'
+		WHERE MEM_ID = #{memId}
+	</update>
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+

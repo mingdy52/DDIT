@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.prod.dao.ProdDAO">
+	
+	<resultMap type="ProdVO" id="prodMap" autoMapping="true">
+      <id property="prodId" column="PROD_ID" />
+<!--       1 : N 구조를 사용할 때 중복여부를 판단할 방법. -->
+<!-- 		@EqualsAndHashCode 이게 없으면 이거 써봤자임. -->
+      
+<!--       <association property="buyer" javaType="BuyerVO" autoMapping="true"/> -->
+<!--       1:1 얘는 생략할 수 있음. -->
+      
+      <collection property="memberSet" ofType="MemberVO" autoMapping="true"/>
+<!--       			컬렉션일 경우 javaType 생략 가능. 마이바티스가 리플렉션으로 알아내니까! -->
+   </resultMap>
+	
+		
+	<select id="selectProd" parameterType="string" resultMap="prodMap">
+		WITH CARTMEMBER AS(
+		    SELECT DISTINCT CART_PROD, MEMBER.*
+		    FROM (
+		        SELECT DISTINCT CART_MEMBER, CART_PROD
+		        FROM CART
+		        ) INNER JOIN MEMBER ON(CART_MEMBER = MEM_ID)
+		)
+		SELECT PROD_ID, PROD_NAME, PROD_LGU, PROD_BUYER
+			,PROD_COST, PROD_PRICE, PROD_SALE, PROD_OUTLINE
+			,PROD_DETAIL, PROD_IMG, PROD_TOTALSTOCK, PROD_INSDATE
+			,PROD_PROPERSTOCK, PROD_SIZE, PROD_COLOR, PROD_DELIVERY
+			,PROD_UNIT, PROD_QTYIN, PROD_QTYSALE, PROD_MILEAGE
+			
+			, LPROD_NM, BUYER_ID "buyer.buyerId", BUYER_NAME "buyer.buyerName"
+			, BUYER_CHARGER "buyer.buyerCharger", BUYER_ADD1 "buyer.buyerAdd1"
+<!--        								스태틱 알리아스  디비는 대소문자 구분못하니까 이렇게 해줘야 해 -->
+       		, MEM_ID, MEM_NAME, MEM_HP, MEM_MAIL
+		FROM PRODVIEW LEFT OUTER JOIN CARTMEMBER ON(CART_PROD = PROD_ID)
+		WHERE PROD_ID = #{prodId}
+
+	</select>
+	
+	<sql id="searchFag">
+		<trim prefix="WHERE" prefixOverrides="AND">
+<!-- 			잘못들어간 AND를 지워주고 WHERE 를 넣어줌. -->
+			<if test="detailCondition neq null">
+				<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(detailCondition.prodLgu)">
+					AND PROD_LGU = #{detailCondition.prodLgu}
+				</if>
+				<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(detailCondition.prodBuyer)">
+					AND PROD_BUYER = #{detailCondition.prodBuyer}
+				</if>
+				<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(detailCondition.prodName)">
+					AND INSTR(PROD_NAME, #{detailCondition.prodName}) > 0
+				</if>
+			</if>
+		</trim>
+	</sql>
+	
+	<select id="selectTotalRecord" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(*)
+		FROM PRODVIEW
+		
+		<include refid="searchFag"></include>
+		
+	</select>
+	
+	<select id="selectProdList" parameterType="PagingVO" resultType="ProdVO">
+		SELECT B.*
+		FROM(
+			SELECT ROWNUM RNUM, A.*
+			FROM
+			(
+				SELECT 
+				PROD_ID, PROD_NAME
+				,PROD_COST, PROD_PRICE, TO_CHAR(PROD_INSDATE, 'YYYY-MM-DD') AS PROD_INSDATE
+				,PROD_MILEAGE
+				, LPROD_NM, BUYER_NAME "buyer.buyerName"
+				FROM PRODVIEW
+				<include refid="searchFag"></include>
+				ORDER BY PROD_ID DESC
+			) A
+		) B
+		<![CDATA[
+			WHERE RNUM >= #{startRow} AND RNUM <= #{endRow}
+		]]>
+		
+		
+	</select>
+		
+	
+</mapper>
