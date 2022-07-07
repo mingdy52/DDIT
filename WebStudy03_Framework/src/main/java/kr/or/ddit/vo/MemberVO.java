@@ -1,9 +1,21 @@
 package kr.or.ddit.vo;
 
 import java.io.Serializable;
+import java.security.acl.Group;
 import java.util.List;
 import java.util.Set;
 
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
+import javax.validation.groups.Default;
+
+
+import kr.or.ddit.validate.DeleteGroup;
+import kr.or.ddit.validate.InsertGroup;
+import kr.or.ddit.validate.UpdateGroup;
+import kr.or.ddit.validate.contraints.TelNumber;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -47,28 +59,66 @@ public class MemberVO implements Serializable {
 	
 //	transient : transient가 설정된 데이터는 객체가 직렬화 되더라도 직렬화에서 빠져나옴.
 	
+		@NotBlank(message="아이디는 필수 입력데이터", groups= {Default.class, DeleteGroup.class})
+//		javax.validation.constraints.NotBlank.message // properties 파일에서 가져옴
+//		javax.validation.constraints.NotBlank // 어노테이션에서 가져옴
+		private String memId;
+		
+		@NotBlank(groups= {Default.class, DeleteGroup.class})
+		@Size(min=4, max=12, message="비밀번호는 4글자에서 12글자 사이.", groups= {Default.class, DeleteGroup.class})
+		private String memPass;
+		
+		@NotBlank
+		private String memName;
+		
+		@NotBlank(groups=InsertGroup.class)
+		@Size(min=6, max=6, groups=InsertGroup.class) // memRegno1 는 insert 할 때만 검증하겠따.
+		private String memRegno1;
+		
+		@NotBlank(groups=InsertGroup.class)
+		@Size(min=7, max=7, groups=InsertGroup.class)
+		private String memRegno2;
+		
+		@NotBlank
+		private String memBir;
+		
+		@NotBlank
+		private String memZip;
+		
+		@NotBlank
+		private String memAdd1;
+		
+		@NotBlank
+		private String memAdd2;
+		
+//		@Pattern(regexp="\\d{2,3}-\\d{3,4}-\\d{4}")
+		@TelNumber
+		// 속성명을 생략할 수 있는 건 그 속성명이 value 일 때만 가능. 속성을 두개 이상 사용할 경우 속성명 생략 불가
+		private String memHometel;
+		
+//		@Pattern(regexp="\\d{2,3}-\\d{3,4}-\\d{4}")
+		@TelNumber
+		private String memComtel;
+		
+		@NotBlank
+//		@Pattern(regexp="\\d{3}-\\d{3,4}-\\d{4}")
+		@TelNumber("\\d{3}-\\d{3,4}-\\d{4}")
+		private String memHp;
+		
+		@NotBlank
+		@Email(message="이메일 계정 확인")
+		private String memMail;
+		private String memJob;
+		private String memLike;
+		private String memMemorial;
+		private String memMemorialday;
+		private Integer memMileage;
+		private String memDelete;
 	
-	private String memId;
-	private transient String memPass;
-	private String memName;
-	private transient String memRegno1;
-	private transient String memRegno2;
-	private String memBir;
-	private String memZip;
-	private String memAdd1;
-	private String memAdd2;
-	private String memHometel;
-	private String memComtel;
-	private String memHp;
-	private String memMail;
-	private String memJob;
-	private String memLike;
-	private String memMemorial;
-	private String memMemorialday;
-	private Integer memMileage;
-	private String memDelete;
-	
-	// 구매기록
-	private Set<ProdVO> buyList; // has many 1 : N
-	
+		// 구매 기록
+		// 만약 구매기록에는 절대로 중복이 발생해서는 안된다 는 조건이 추가됐다면? 중복 허용 안하는 Set 사용 => 수정해도 Lombok이 알아서
+		// 해결해줌~
+		private Set<ProdVO> buyList; // has many 1 : N
+		
+		private String memRole;
 }

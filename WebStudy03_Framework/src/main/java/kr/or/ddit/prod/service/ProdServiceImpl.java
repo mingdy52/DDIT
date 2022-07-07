@@ -15,8 +15,13 @@ public class ProdServiceImpl implements ProdService {
 
 	@Override
 	public ServiceResult createProd(ProdVO prod) {
-		// TODO Auto-generated method stub
-		return null;
+		ServiceResult result = null;
+		
+		int rowcnt = prodDAO.insertProd(prod); 
+		// 아이바티스는 인서트 리턴 타입이 오브젝트, 반환 타입으로 프라이머리키를 만듬
+		// 마이바티스는 인서트 리턴 타입이 인트
+		
+		return rowcnt > 0 ? ServiceResult.OK : ServiceResult.FAIL;
 	}
 
 	@Override

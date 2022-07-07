@@ -20,6 +20,8 @@ import kr.or.ddit.enumpkg.ServiceResult;
 import kr.or.ddit.member.service.MemberService;
 import kr.or.ddit.member.service.MemberServiceImpl;
 import kr.or.ddit.mvc.DelegatingViewResolver;
+import kr.or.ddit.validate.UpdateGroup;
+import kr.or.ddit.validate.ValidateUtils;
 import kr.or.ddit.vo.MemberVO;
 
 @WebServlet("/member/memberUpdate.do")
@@ -42,7 +44,8 @@ public class MemberUpdateServlet extends HttpServlet {
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 //		요청 파리미터에 포함된 특수문자에 대한 디코딩 방식 설정.
-		req.setCharacterEncoding("UTF-8");
+//		req.setCharacterEncoding("UTF-8"); --> filter
+		
 //		전달되는 여러개의 파라미터를 Domain layer 를 이용하여 바인딩.
 		Map<String, String[]> parameterMap = req.getParameterMap();
 		MemberVO member = new MemberVO();
@@ -57,7 +60,7 @@ public class MemberUpdateServlet extends HttpServlet {
 //		요청 데이터 검증
 		Map<String, String> errors = new LinkedHashMap<>();
 		req.setAttribute("errors", errors);
-		boolean valid = validate(member, errors);
+		boolean valid = ValidateUtils.validate(member, errors, UpdateGroup.class);
 		String viewName = null;
 		if(valid) {
 //		검증을 통과하면 로직을 사용하여 수정.
@@ -84,44 +87,44 @@ public class MemberUpdateServlet extends HttpServlet {
 		new DelegatingViewResolver().viewResolve(viewName, req, resp);
 	}
 
-	private boolean validate(MemberVO member, Map<String, String> errors) {
-		boolean valid = true;
-		if (StringUtils.isBlank(member.getMemId())) {
-			errors.put("memId", "회원아이디 누락");
-			valid = false;
-		}
-		if (StringUtils.isBlank(member.getMemPass())) {
-			errors.put("memPass", "비밀번호 누락");
-			valid = false;
-		}
-		if (StringUtils.isBlank(member.getMemName())) {
-			errors.put("memName", "회원명 누락");
-			valid = false;
-		}
-		if (StringUtils.isBlank(member.getMemBir())) {
-			errors.put("memBir", "생일 누락");
-			valid = false;
-		}
-		if (StringUtils.isBlank(member.getMemZip())) {
-			errors.put("memZip", "우편번호 누락");
-			valid = false;
-		}
-		if (StringUtils.isBlank(member.getMemAdd1())) {
-			errors.put("memAdd1", "주소1 누락");
-			valid = false;
-		}
-		if (StringUtils.isBlank(member.getMemAdd2())) {
-			errors.put("memAdd2", "주소2 누락");
-			valid = false;
-		}
-		if (StringUtils.isBlank(member.getMemHp())) {
-			errors.put("memHp", "휴대폰 누락");
-			valid = false;
-		}
-		if (StringUtils.isBlank(member.getMemMail())) {
-			errors.put("memMail", "이메일 누락");
-			valid = false;
-		}
-		return valid;
-	}
+//	private boolean validate(MemberVO member, Map<String, String> errors) {
+//		boolean valid = true;
+//		if (StringUtils.isBlank(member.getMemId())) {
+//			errors.put("memId", "회원아이디 누락");
+//			valid = false;
+//		}
+//		if (StringUtils.isBlank(member.getMemPass())) {
+//			errors.put("memPass", "비밀번호 누락");
+//			valid = false;
+//		}
+//		if (StringUtils.isBlank(member.getMemName())) {
+//			errors.put("memName", "회원명 누락");
+//			valid = false;
+//		}
+//		if (StringUtils.isBlank(member.getMemBir())) {
+//			errors.put("memBir", "생일 누락");
+//			valid = false;
+//		}
+//		if (StringUtils.isBlank(member.getMemZip())) {
+//			errors.put("memZip", "우편번호 누락");
+//			valid = false;
+//		}
+//		if (StringUtils.isBlank(member.getMemAdd1())) {
+//			errors.put("memAdd1", "주소1 누락");
+//			valid = false;
+//		}
+//		if (StringUtils.isBlank(member.getMemAdd2())) {
+//			errors.put("memAdd2", "주소2 누락");
+//			valid = false;
+//		}
+//		if (StringUtils.isBlank(member.getMemHp())) {
+//			errors.put("memHp", "휴대폰 누락");
+//			valid = false;
+//		}
+//		if (StringUtils.isBlank(member.getMemMail())) {
+//			errors.put("memMail", "이메일 누락");
+//			valid = false;
+//		}
+//		return valid;
+//	}
 }

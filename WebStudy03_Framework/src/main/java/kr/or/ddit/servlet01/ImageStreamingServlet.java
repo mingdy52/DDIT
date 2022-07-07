@@ -50,7 +50,7 @@ public class ImageStreamingServlet extends HttpServlet{
 		//WebStudy01/res/kr/or/ddit/images/cat1.jpg 여기서 클래스패쓰 빼고 경로 사용(내가 쓴것)
 		//String srcPath ="/kr/or/ddit/images/cat1.jpg";
 		
-		String webPath ="/WEB-INF/inner/cat1.jpg" ; //서버 백그라운드 서버 사이드에서 실행 컨텍스트생략함 ..  URL, URI ,상대, 절대
+		String webPath ="/WEB-INF/inner/cat1.jpg"; //서버 백그라운드 서버 사이드에서 실행 컨텍스트생략함 ..  URL, URI ,상대, 절대
 		
 	// String filePath = this.getClass().getResource(srcPath).getFile();
 		

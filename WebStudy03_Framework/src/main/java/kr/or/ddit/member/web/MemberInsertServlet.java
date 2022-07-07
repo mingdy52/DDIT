@@ -14,11 +14,14 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jasypt.util.text.AES256TextEncryptor;
 
 import kr.or.ddit.enumpkg.ServiceResult;
 import kr.or.ddit.member.service.MemberService;
 import kr.or.ddit.member.service.MemberServiceImpl;
 import kr.or.ddit.mvc.DelegatingViewResolver;
+import kr.or.ddit.validate.InsertGroup;
+import kr.or.ddit.validate.ValidateUtils;
 import kr.or.ddit.vo.MemberVO;
 
 @WebServlet("/member/memberInsert.do") // RESTful URI(x)
@@ -40,8 +43,6 @@ public class MemberInsertServlet extends HttpServlet {
 	
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		req.setCharacterEncoding("UTF-8");
-		
 		MemberVO member = new MemberVO();
 //		member.setMemId(req.getParameter("memId"));
 		// setMemId / memId 이름이 같기 때문에 여기서 리플렉션을 사용할 수 있음.
@@ -54,11 +55,13 @@ public class MemberInsertServlet extends HttpServlet {
 			// 위에 이미 예외를 던지고 있음. 꼭 런타임만 던지는건 아님.
 		}
 		
-		Map<String, String> errors = new LinkedHashMap<String, String>();
-		req.setAttribute("errors", errors);
-		boolean valid = validate(member, errors);
+
 		
-		String viewName = null;
+		Map<String,String> errors = new LinkedHashMap<>();
+	    req.setAttribute("errors", errors); //실패한게 뭔지도 알려줘야하니까 가지고가기위해
+	    boolean valid =ValidateUtils.validate(member,errors, InsertGroup.class);
+	    String viewName =null;
+
 		if(valid) {
 			ServiceResult result = service.createMember(member);
 			switch (result) {
@@ -82,13 +85,15 @@ public class MemberInsertServlet extends HttpServlet {
 				break;
 				
 			}
-		} else {
-			viewName = "/member/memberForm.jsp";
-		}
+	     } else { //검증 실패 -> 정상인데이터가지고(memberVO안에존재)
+	          viewName ="/member/memberForm.tiles";
+	     }
+
 		
 		new DelegatingViewResolver().viewResolve(viewName, req, resp);
 	}
-	
+
+/*
 	private boolean validate(MemberVO member, Map<String, String> errors) {
 		
 		boolean valid = true;
@@ -102,6 +107,7 @@ public class MemberInsertServlet extends HttpServlet {
 			valid = false;
 		}
 		return valid;
-	}
+	} -> hibernate validator 로 대체
 	
+*/
 }

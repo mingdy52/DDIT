@@ -32,6 +32,7 @@ public class MemberViewServlet extends HttpServlet {
 			
 		MemberVO member = service.retrieveMember(memId);
 		req.setAttribute("member", member);
+		
 		String viewName = null;
 		if("grid".equals(layout)) {
 			viewName = "/member/memberView.tiles";

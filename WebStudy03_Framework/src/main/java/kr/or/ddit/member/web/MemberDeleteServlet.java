@@ -28,7 +28,6 @@ public class MemberDeleteServlet extends HttpServlet {
 	
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		req.setCharacterEncoding("UTF-8");
 		// 초기 값을 가지고 있는 수정 양식 제공. member/memberForm 재활용
 		String password = req.getParameter("password");
 		HttpSession session = req.getSession();

@@ -10,6 +10,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import kr.or.ddit.commons.JsonMarshallingServlet;
 import kr.or.ddit.member.service.MemberService;
@@ -27,6 +29,10 @@ import kr.or.ddit.vo.SimpleSearchCondition;
  */
 @WebServlet("/member/memberList.do")
 public class MemberListServlet extends HttpServlet {
+	
+	private static final Logger log = LoggerFactory.getLogger(MemberListServlet.class);
+//	클래스의 계층 구조가 그대로 전달.
+	
 	MemberService service = new MemberServiceImpl();
 	// 인터페이스 기반이기 때문에 처리 소스가 없어도 가능.
 	
@@ -37,13 +43,14 @@ public class MemberListServlet extends HttpServlet {
 	}
 	
 	private void processJsonData(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		req.setCharacterEncoding("UTF-8");
 		
 		String pageParam = req.getParameter("page");
 		
 		String searchType = req.getParameter("searchType"); // 두개는 필수 파라미터가 아니니까 검증의 대상이 아님.
 		String searchWord = req.getParameter("searchWord");
 		SimpleSearchCondition searchVO = new SimpleSearchCondition(searchType, searchWord);
+		log.info("searchType : {}, searchWord : {}", searchType, searchWord);
+//		로그 기록은 등록한 레벨 이상부터 출력 가능
 		
 		int currentPage = 1;
 		

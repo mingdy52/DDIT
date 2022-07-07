@@ -9,6 +9,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import kr.or.ddit.vo.MemberVO;
+import kr.or.ddit.vo.PagingVO;
 
 public class MemberDAOTest {
 	MemberDAO dao = new MemberDAOImpl();			
@@ -53,7 +54,7 @@ public class MemberDAOTest {
 
 	@Test
 	public void testSelectMemberList() {
-		List<MemberVO> memberList = dao.selectMemberList();
+		List<MemberVO> memberList = dao.selectMemberList(PagingVO<MemberVO>);
 		assertNotNull(memberList);
 		assertNotEquals(0, memberList.size());
 		System.out.println(memberList);
@@ -79,7 +80,9 @@ public class MemberDAOTest {
 	public void deleteMember() {
 		int rowcnt = dao.deleteMember("b002");
 		assertEquals(1, rowcnt);
+		
 	}
+	
 }
 
 

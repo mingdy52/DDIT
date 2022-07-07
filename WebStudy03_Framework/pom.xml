@@ -8,6 +8,8 @@
   <properties>
   	<java-version>1.8</java-version>
   	<com.fasterxml.jackson-verion>2.13.3</com.fasterxml.jackson-verion>
+  	<org.apache.logging.log4j2-version>2.18.0</org.apache.logging.log4j2-version>
+  	<org.slf4j-version>1.7.36</org.slf4j-version>
   </properties>
   
   <build>
@@ -35,6 +37,12 @@
 		    <groupId>org.apache.commons</groupId>
 		    <artifactId>commons-dbcp2</artifactId>
 		    <version>2.9.0</version>
+		    <exclusions>
+		    	<exclusion>
+		    		<groupId>commons-logging</groupId>
+		    		<artifactId>commons-logging</artifactId>
+		    	</exclusion>
+		    </exclusions>
 	</dependency>
 	<dependency>
 	    <groupId>org.mybatis</groupId>
@@ -73,6 +81,12 @@
 	    <artifactId>commons-lang3</artifactId>
 	    <version>3.12.0</version>
 	</dependency>
+<!-- 	servlet 2.x 방식의 파일업로드 지원 -->
+	<dependency>
+	    <groupId>commons-fileupload</groupId>
+	    <artifactId>commons-fileupload</artifactId>
+	    <version>1.4</version>
+	</dependency>
 	
 <!-- 	JavaBean 지원용 -->
 	<dependency>
@@ -81,12 +95,30 @@
 		<version>1.18.24</version>
 	</dependency>
 	
+<!-- 	Bean validation -->
+	<dependency>
+	    <groupId>org.hibernate.validator</groupId>
+	    <artifactId>hibernate-validator</artifactId>
+	    <version>6.2.3.Final</version>
+	</dependency>
+	<dependency>
+	    <groupId>org.glassfish</groupId>
+	    <artifactId>jakarta.el</artifactId>
+	    <version>3.0.3</version>
+	</dependency>
+	
 <!-- 	reflection 지원용 -->
   	<dependency>
 	    <groupId>commons-beanutils</groupId>
 	    <artifactId>commons-beanutils</artifactId>
 	    <version>1.9.4</version>
-	</dependency>
+	    <exclusions>
+	    	<exclusion>
+	    		<groupId>commons-logging</groupId>
+	    		<artifactId>commons-logging</artifactId>
+	    	</exclusion>
+	    </exclusions>
+  	</dependency>
 	
 <!-- 	Marshalling 지원용 -->
   	<dependency>
@@ -101,12 +133,53 @@
 <!-- 	    property placdholder ${property_name} -->
 	    <version>${com.fasterxml.jackson-verion}</version>
 	</dependency>
+	
+<!-- 	logging framework -->
+	  <dependency>
+	    <groupId>org.apache.logging.log4j</groupId>
+	    <artifactId>log4j-api</artifactId>
+	    <version>${org.apache.logging.log4j2-version}</version>
+	  </dependency>
+	  <dependency>
+	    <groupId>org.apache.logging.log4j</groupId>
+	    <artifactId>log4j-core</artifactId>
+	    <version>${org.apache.logging.log4j2-version}</version>
+	  </dependency>
+	  <dependency>
+	    <groupId>org.slf4j</groupId>
+	    <artifactId>slf4j-api</artifactId>
+	    <version>${org.slf4j-version}</version>
+	  </dependency>
+	  <dependency>
+	    <groupId>org.slf4j</groupId>
+	    <artifactId>jcl-over-slf4j</artifactId>
+	    <version>${org.slf4j-version}</version>
+	  </dependency>
+	  <dependency>
+	    <groupId>org.apache.logging.log4j</groupId>
+	    <artifactId>log4j-slf4j-impl</artifactId>
+	    <version>2.18.0</version>
+	  </dependency>
+	  <dependency>
+	    <groupId>org.lazyluke</groupId>
+	    <artifactId>log4jdbc-remix</artifactId>
+	    <version>0.2.7</version>
+	  </dependency>
+	
+<!-- 	단위 테스트 프레임워크 -->
 	<dependency>
 		<groupId>junit</groupId>
 		<artifactId>junit</artifactId>
 		<version>4.13.2</version>
 		<scope>test</scope>
 	</dependency>
+	
+	<dependency>
+	    <groupId>org.jasypt</groupId>
+	    <artifactId>jasypt</artifactId>
+	    <version>1.9.3</version>
+	</dependency>
+	
 	
   </dependencies>
 </project>

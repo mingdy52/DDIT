@@ -15,8 +15,14 @@ public class ProdDAOImpl implements ProdDAO {
 	
 	@Override
 	public int insertProd(ProdVO prod) {
-		// TODO Auto-generated method stub
-		return 0;
+		try(
+				SqlSession sqlSession = sqlSessionFactory.openSession();
+		) {
+			ProdDAO mapper = sqlSession.getMapper(ProdDAO.class);
+			int rowcnt = mapper.insertProd(prod);
+			sqlSession.commit();
+			return rowcnt;
+		}
 	}
 	
 	@Override

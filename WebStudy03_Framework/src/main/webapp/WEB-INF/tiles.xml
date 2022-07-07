@@ -45,7 +45,6 @@
 <definition name="06/sem_calendar" extends="parent">
     <put-attribute name="body" value="/06/sem_calendar.jsp" />
 </definition>
-
 <definition name="prod/*" extends="parent">
     <put-attribute name="body" value="/WEB-INF/views/prod/{1}.jsp" />
 </definition>

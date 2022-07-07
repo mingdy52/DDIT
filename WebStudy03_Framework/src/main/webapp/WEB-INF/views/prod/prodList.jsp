@@ -15,38 +15,38 @@
 			</tr>
 		</thead>
 		<tbody>
-<%-- 		<c:set var="prodList" value="${pagingVO.dataList }" /> --%>
-<%-- 		<c:if test="${not empty prodList }"> --%>
-<%-- 		<c:forEach items="${prodList }" var="prod"> --%>
-<!-- 			<tr> -->
-<%-- 				<td>${prod.rnum }</td> --%>
-<%-- 				<c:url value="/prod/prodView.do" var="prodView"> --%>
-<%-- 					<c:param name="what" value="${prod.prodId }"/> --%>
-<%-- 				</c:url> --%>
-<%-- 				<td><a href="${prodView }">${prod.prodName } </a></td> --%>
-<%-- 				<td>${prod.lprodNm }</td> --%>
-<%-- 				<td>${prod.buyer.buyerName }</td> --%>
-<%-- 				<td>${prod.prodInsdate }</td> --%>
-<%-- 				<td>${prod.prodCost }</td> --%>
-<%-- 				<td>${prod.prodPrice }</td> --%>
-<%-- 				<td>${prod.prodMileage }</td> --%>
-<!-- 			</tr> -->
+		<c:set var="prodList" value="${pagingVO.dataList }" />
+		<c:if test="${not empty prodList }">
+		<c:forEach items="${prodList }" var="prod">
+			<tr>
+				<td>${prod.rnum }</td>
+				<c:url value="/prod/prodView.do" var="prodView">
+					<c:param name="what" value="${prod.prodId }"/>
+				</c:url>
+				<td><a href="${prodView }">${prod.prodName } </a></td>
+				<td>${prod.lprodNm }</td>
+				<td>${prod.buyer.buyerName }</td>
+				<td>${prod.prodInsdate }</td>
+				<td>${prod.prodCost }</td>
+				<td>${prod.prodPrice }</td>
+				<td>${prod.prodMileage }</td>
+			</tr>
 			
-<%-- 		</c:forEach> --%>
-<%-- 		</c:if> --%>
-<%-- 		<c:if test="${empty prodList }"> --%>
-<!-- 			<tr> -->
-<!-- 				<td colspan="8">없음.</td> -->
-<!-- 			</tr> -->
-<%-- 		</c:if> --%>
-<!-- 		</tbody> -->
+		</c:forEach>
+		</c:if>
+		<c:if test="${empty prodList }">
+			<tr>
+				<td colspan="8">없음.</td>
+			</tr>
+		</c:if>
+		</tbody>
 		<tfoot>
 			<tr>
 				<td colspan="8">
 					<div class="pagingArea">
 						${pagingVO.pagingHTMLBS }
 					</div>
-					<div id="searchUI" class="d-flex justify-center-center" />
+					<div id="searchUI" class="d-flex justify-center-center" >
 					
 						<select name="prodLgu">
 							<option value>상품분류</option>
@@ -75,6 +75,11 @@
 						<input type="text" name="prodName" placeholder="상품명"/>
 						<input id="searchBtn" type="button" value="검색" class="btn btn-success" />
 					</div>
+				</td>
+			</tr>
+			<tr>
+				<td colspan="8">
+				<a href="${cPath }/prod/prodInsert.do" >등록</a>
 				</td>
 			</tr>
 		</tfoot>
@@ -113,9 +118,6 @@
 		
 		let searchUI = $("#searchUI");
 		let searchForm = $("#searchForm");
-		
-		
-		
 		$("#searchBtn").on("click", function(event){
 			let inputs = searchUI.find(":input[name]");
 			

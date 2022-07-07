@@ -3,7 +3,7 @@
 <mapper namespace="kr.or.ddit.member.dao.MemberDAO">
 
 	<select id="selectMemberForAuth" parameterType="MemberVO" resultType="MemberVO">
-		 SELECT MEM_ID, MEM_PASS, MEM_NAME, MEM_HP, MEM_ADD1  
+		 SELECT MEM_ID, MEM_PASS, MEM_NAME, MEM_HP, MEM_ADD1, MEM_ROLE
 		 FROM MEMBER                                          
 		 WHERE MEM_ID = #{memId}  AND MEM_DELETE IS NULL	         
 	</select>
@@ -96,7 +96,7 @@
 	          MEM_HOMETEL,       MEM_COMTEL,       MEM_HP,                               
 	          MEM_MAIL,       MEM_JOB,       MEM_LIKE,                                 
 	          MEM_MEMORIAL,   TO_CHAR(MEM_MEMORIALDAY, 'YYYY-MM-DD') MEM_MEMORIALDAY,   
-	          MEM_MILEAGE,    MEM_DELETE    
+	          MEM_MILEAGE,    MEM_DELETE    , MEM_ROLE
 	         , PROD_ID, PROD_NAME,  PROD_COST, PROD_PRICE
 	         , BUYER_NAME, LPROD_NM
 	     FROM MEMBER LEFT OUTER JOIN CARTPROD ON(MEM_ID = CART_MEMBER)

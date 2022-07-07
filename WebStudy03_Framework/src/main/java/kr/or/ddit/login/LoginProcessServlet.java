@@ -15,6 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 import kr.or.ddit.enumpkg.ServiceResult;
 import kr.or.ddit.member.service.AuthenticateService;
 import kr.or.ddit.member.service.AuthenticateServiceImpl;
+import kr.or.ddit.security.PasswordUtils;
 import kr.or.ddit.vo.MemberVO;
 
 @WebServlet("/login/loginProcess.do")
@@ -35,11 +36,12 @@ public class LoginProcessServlet extends HttpServlet {
 			return;
 		}
 		
-		req.setCharacterEncoding("UTF-8"); // 모든 컨트롤러에서 제일 먼저 들어거야함!
+//		req.setCharacterEncoding("UTF-8"); // 모든 컨트롤러에서 제일 먼저 들어거야함!
 		
 		MemberVO inputData = new MemberVO();
 		inputData.setMemId(req.getParameter("memId"));
 		inputData.setMemPass(req.getParameter("memPass"));
+		
 		
 		// 1. 검증
 		boolean valid = validate(inputData);
