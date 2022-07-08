@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd" >
+
+
+<configuration>
+	<properties resource="kr/or/ddit/db/dbInfo.properties" />
+	
+	<settings>
+		<setting name="mapUnderscoreToCamelCase" value="true"></setting>
+	</settings>
+	
+	<typeAliases>
+		<package name="kr.or.ddit.vo"/>
+	</typeAliases>
+	
+	
+	<!-- 						클래스패스 리소스부터 시작 -->
+
+	<environments default="dev"> 
+<!-- 					기본으로 주고 싶은 아이디 주기 -->
+		<environment id="dev">
+			<transactionManager type="JDBC"/>
+			<dataSource type="POOLED">
+				<property name="driver" value="${driverClassName}"/>
+				<property name="url" value="${url}"/>
+				<property name="username" value="${user}"/>
+				<property name="password" value="${password}"/>
+				<property name="poolMaximumActiveConnections" value="${maxTotal}"/>
+				<property name="poolMaximumIdleConnections" value="${initialSize}"/>
+				<property name="poolTimeToWait" value="${maxWait}"/>
+			</dataSource>
+		</environment>
+	</environments>
+	
+	<mappers>
+		<mapper resource="kr/or/ddit/mappers/Member.xml" />
+		<mapper resource="kr/or/ddit/mappers/Prod.xml" />
+		<mapper resource="kr/or/ddit/mappers/OthersDAO.xml" />
+<!-- 		<mapper resource="kr/or/ddit/mappers/Employee.xml" /> -->
+<!-- 		<mapper resource="kr/or/ddit/mappers/DBProps.xml" /> -->
+	</mappers>
+</configuration>

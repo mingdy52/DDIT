@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.employee.dao.EmployeeDAO">
+
+<!-- 	매퍼프록시 -->
+	<select id="selectEmployeeList" parameterType="Integer" resultType="EmployeeVO">
+		SELECT EMPLOYEE_ID, FIRST_NAME, LAST_NAME, EMAIL, PHONE_NUMBER, TO_CHAR(HIRE_DATE, 'YYYY-MM-DD') HIRE_DATE,
+				JOB_ID, SALARY, COMMISSION_PCT,  MANAGER_ID, DEPARTMENT_ID, EMP_NAME, RETIRE_DATE,
+				(SELECT COUNT(EMPLOYEE_ID) 
+						FROM HR.EMPLOYEES B 
+						WHERE A.EMPLOYEE_ID = B.MANAGER_ID) CHILDCOUNT 
+		FROM  HR.EMPLOYEES  A 
+		
+		
+		<choose>
+			<when test="${empty managerId}">
+				WHERE MANAGER_ID IS NULL
+			</when>
+			<otherwise>
+				WHERE MANAGER_ID = #{managerId}
+			</otherwise>
+		</choose>
+		
+	</select>
+	
+
+</mapper>

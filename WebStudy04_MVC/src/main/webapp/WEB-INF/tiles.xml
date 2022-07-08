@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE tiles-definitions PUBLIC "-//Apache Software Foundation//DTD Tiles Configuration 3.0//EN" "http://tiles.apache.org/dtds/tiles-config_3_0.dtd" >
+<tiles-definitions>
+  <definition name="parent" template="/WEB-INF/views/template_tiles.jsp">
+    <put-attribute name="title" value="Tiles tutorial homepage" />
+    
+    <put-attribute name="preScript" value="/includee/preScript.jsp" />
+    <put-attribute name="leftMenu" value="/includee/leftMenu.jsp" />
+   
+    <put-attribute name="postScript" value="/includee/postScript.jsp" />
+  </definition>
+  <definition name="sample/*" extends="parent">
+  	<put-attribute name="body" value="/WEB-INF/views/sample/{1}.jsp" />
+  </definition>
+  <definition name="member/*" extends="parent">
+  	<put-attribute name="body" value="/WEB-INF/views/member/{1}.jsp" />
+  </definition>
+  <definition name="employee/*" extends="parent">
+  	<put-attribute name="body" value="/WEB-INF/views/employee/{1}.jsp" />
+  </definition>
+  <definition name="server/browsing" extends="parent">
+  	<put-attribute name="body" value="/WEB-INF/views/server/browsing.jsp" />
+  </definition>
+<definition name="04/factorial2" extends="parent">
+    <put-attribute name="body" value="/04/factorial2.jsp" />
+</definition>
+<definition name="06/sem_calendar" extends="parent">
+    <put-attribute name="body" value="/06/sem_calendar.jsp" />
+</definition>
+  <definition name="11/jdbcDesc" extends="parent">
+  	<put-attribute name="body" value="/WEB-INF/views/11/jdbcDesc.jsp" />
+  </definition>
+  <definition name="index" extends="parent">
+  	<put-attribute name="body" value="/WEB-INF/views/index.jsp" />
+  </definition>
+  <definition name="model1/**" extends="parent">
+  	<put-attribute name="body" value="/{1}" />
+  </definition>
+  <definition name="prod/*" extends="parent">
+  	<put-attribute name="body" value="/WEB-INF/views/prod/{1}.jsp" />
+  </definition>
+</tiles-definitions>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
