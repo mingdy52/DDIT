@@ -18,7 +18,7 @@ public class ModelAttribteArgumentResolver implements HandlerMethodArgumentResol
 
 	@Override
 	public boolean isSupported(Parameter parameter) {
-		ModelAttribute annotation = parameter.getAnnotation(ModelAttribute.class);
+		ModelAtrribute annotation = parameter.getAnnotation(ModelAtrribute.class);
 		Class<?> parameterType = parameter.getType();
 		return annotation!=null && !ClassUtils.isPrimitiveOrWrapper(parameterType);
 	}
@@ -26,7 +26,7 @@ public class ModelAttribteArgumentResolver implements HandlerMethodArgumentResol
 	@Override
 	public Object argumentResolve(Parameter parameter, HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
-		ModelAttribute annotation = parameter.getAnnotation(ModelAttribute.class);
+		ModelAtrribute annotation = parameter.getAnnotation(ModelAtrribute.class);
 		Class<?> parameterType = parameter.getType();
 		Object parameterValue;
 		try {

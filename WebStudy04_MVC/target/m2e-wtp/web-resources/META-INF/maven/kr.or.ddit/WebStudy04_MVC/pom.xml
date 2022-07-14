@@ -130,7 +130,7 @@
 	    <groupId>com.fasterxml.jackson.dataformat</groupId>
 	    <artifactId>jackson-dataformat-xml</artifactId>
 	    
-<!-- 	    property placdholder ${property_name} -->
+<!-- 	    property placeholder ${property_name} -->
 	    <version>${com.fasterxml.jackson-verion}</version>
 	</dependency>
 	

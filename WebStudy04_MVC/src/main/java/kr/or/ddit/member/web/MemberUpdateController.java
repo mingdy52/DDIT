@@ -10,7 +10,7 @@ import kr.or.ddit.enumpkg.ServiceResult;
 import kr.or.ddit.member.service.MemberService;
 import kr.or.ddit.member.service.MemberServiceImpl;
 import kr.or.ddit.mvc.annotation.RequestMethod;
-import kr.or.ddit.mvc.annotation.resolvers.ModelAttribute;
+import kr.or.ddit.mvc.annotation.resolvers.ModelAtrribute;
 import kr.or.ddit.mvc.annotation.stereotype.Controller;
 import kr.or.ddit.mvc.annotation.stereotype.RequestMapping;
 import kr.or.ddit.validate.UpdateGroup;
@@ -33,7 +33,7 @@ public class MemberUpdateController {
 	}
 	
 	@RequestMapping(value="/member/memberUpdate.do", method=RequestMethod.POST)
-	public String updateProcess(@ModelAttribute("member") MemberVO member, HttpServletRequest req){
+	public String updateProcess(@ModelAtrribute("member") MemberVO member, HttpServletRequest req){
 //		요청 데이터 검증
 		Map<String, String> errors = new LinkedHashMap<>();
 		req.setAttribute("errors", errors);

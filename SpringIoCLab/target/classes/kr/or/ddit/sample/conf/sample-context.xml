@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:c="http://www.springframework.org/schema/c"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd"
+	>
+	
+<!-- 	CoC : Convention over Configurtion -->
+	<bean id="sampleDAO_Maria" class="kr.or.ddit.sample.dao.SampleDAO_Maria" init-method="init" destroy-method="destroy"></bean>
+	<bean id="sampleDAO_Oracle" class="kr.or.ddit.sample.dao.SampleDAO_Oracle" ></bean>
+	<bean id="sampleService" class="kr.or.ddit.sample.service.SampleServiceImpl" 
+		c:sampleDAO-ref="sampleDAO_Maria"
+		
+	>
+<!-- 		p:sampleDAO-ref="sampleDAO_Oracle" -->
+<!-- 		<constructor-arg name="sampleDAO" ref="sampleDAO_Oracle"></constructor-arg> -->
+<!-- 		<property name="sampleDAO" ref="sampleDAO_Oracle"></property> -->
+	</bean>
+
+<!-- 	Spring[Bean|DI|IoC] container : bean(객체)의 생명주기 관리자 -->
+<!-- 		container 사용 단계 -->
+<!-- 		1. spring-context 의존성을 maven 에 추가. -->
+<!-- 		2. container 에 bean 등록 : sample-context.xml -> bean -->
+<!-- 		3. bean 들 간의 의존관계 형성 -->
+<!-- 			1) setter injection : 의존성을 세터에 주입. property -> spring 3.x -> p -->
+<!-- 			2) constructor injection : 의존성을 생성자에 주입. constructor-arg  -> spring 3.x -> c -->
+<!-- 		4. Container 객체 생성 : ApplicationContext 의 구현체 -->
+<!-- 		5. container 로 부터 필요한 객체(의존객체)를 주입받아 사용. : getBean -->
+
+<!-- container의 bean 관리 특성 -->
+<!-- 1. singleton : 하나의 빈에 대해 특별한 설정(scope)이 없는 한 singleton 의 형태로 객체 운영. -->
+<!-- 	singleton : 빈 하나당 객체 하나가 운영. 컨테이너가 초기화될 때 미리 만들어놈. -->
+<!-- 	prototype : 하나의 빈에 대해 주입시마다 새로운 객체가 생성됨. 주입할 대마다 새로운 객체를 만든다면 주입할 때 객체를 생성함. 즉, 객체의 생성 시점이 지연됨. -->
+<!-- 	request : 요청 하나당 빈 하나 -->
+<!-- 	session : 세션 하나당 빈 하나 -->
+<!-- 2. 특별한 설정(lazy-init)이 없는 한 container 는 빈을 컨테이너가 초기화할 때 등록된 모든 빈을 생성함. -->
+<!-- 3. 등록된 빈의 객체 생성 순서 제어 설정 : depends-on -->
+<!-- 4. container 는 빈의 생명주기 내에게 callback 을 호출하는 구조를 가짐. : init-method, destroy-method -->
+</beans>

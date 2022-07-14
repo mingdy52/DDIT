@@ -17,7 +17,8 @@ import kr.or.ddit.enumpkg.ServiceResult;
 import kr.or.ddit.filter.multipart.MultipartFile;
 import kr.or.ddit.filter.multipart.StandardMultipartHttpServletRequest;
 import kr.or.ddit.mvc.annotation.RequestMethod;
-import kr.or.ddit.mvc.annotation.resolvers.ModelAttribute;
+import kr.or.ddit.mvc.annotation.resolvers.ModelAtrribute;
+import kr.or.ddit.mvc.annotation.resolvers.RequestPart;
 import kr.or.ddit.mvc.annotation.stereotype.Controller;
 import kr.or.ddit.mvc.annotation.stereotype.RequestMapping;
 import kr.or.ddit.prod.dao.OthersDAO;
@@ -45,7 +46,9 @@ public class ProdInsertController{
 	}
 	
 	@RequestMapping(value="/prod/prodInsert.do", method=RequestMethod.POST)
-	public String insertProcess(@ModelAttribute("prod") ProdVO prod, HttpServletRequest req) throws IOException{
+	public String insertProcess(@RequestPart("prodImage") MultipartFile imageFile
+								, @ModelAtrribute("prod") ProdVO prod
+								, HttpServletRequest req) throws IOException{
 		addOthersData(req);
 //		ProdVO prod = new ProdVO();
 //		req.setAttribute("prod", prod);
@@ -55,10 +58,10 @@ public class ProdInsertController{
 //			throw new RuntimeException(e);
 //		}
 		
-		if(req instanceof StandardMultipartHttpServletRequest) {
-			MultipartFile imageFile = ((StandardMultipartHttpServletRequest) req).getFile("prodImage");
+//		if(req instanceof StandardMultipartHttpServletRequest) {
+//			MultipartFile imageFile = ((StandardMultipartHttpServletRequest) req).getFile("prodImage");
 			prod.setProdImage(imageFile);
-		}
+//		}
 		
 		// 상품 이미지 저장 처리(MultipartFile)
 		String imageFolderUrl = "/resources/prodImages";
@@ -68,7 +71,7 @@ public class ProdInsertController{
 		String imageSaveName = UUID.randomUUID().toString();
 		File prodImageFile = new File(imageFolder, imageSaveName);
 		
-		MultipartFile imageFile = prod.getProdImage();
+//		MultipartFile imageFile = prod.getProdImage();
 		if(!imageFile.isEmpty()) {
 			imageFile.transferTo(prodImageFile);
 			prod.setProdImg(imageSaveName);

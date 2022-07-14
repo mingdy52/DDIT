@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import kr.or.ddit.member.service.MemberService;
 import kr.or.ddit.member.service.MemberServiceImpl;
 import kr.or.ddit.mvc.annotation.RequestMethod;
+import kr.or.ddit.mvc.annotation.resolvers.RequestHeader;
 import kr.or.ddit.mvc.annotation.resolvers.RequestParam;
 import kr.or.ddit.mvc.annotation.stereotype.Controller;
 import kr.or.ddit.mvc.annotation.stereotype.RequestMapping;
@@ -55,12 +56,13 @@ public class MemberListController{
 	
 	@RequestMapping(value="/member/memberList.do", method=RequestMethod.GET)
 	public String memberList(
-			@RequestParam(value="searchType", required=false) String searchType
+			@RequestHeader("accept") String accept
+			, @RequestParam(value="searchType", required=false) String searchType
 			, @RequestParam(value="searchWord", required=false) String searchWord
 			, @RequestParam(value="page", required=false, defaultValue="1") int currentPage
 			, HttpServletRequest req
 	){
-		String accept = req.getHeader("accept");
+//		String accept = req.getHeader("accept");
 		String viewName = null;
 		if(StringUtils.containsIgnoreCase(accept, "json")) {
 			viewName = processJsonData(searchType, searchWord, currentPage, req);

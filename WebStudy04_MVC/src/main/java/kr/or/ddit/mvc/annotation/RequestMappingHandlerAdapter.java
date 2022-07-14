@@ -13,8 +13,12 @@ import javax.servlet.http.HttpServletResponse;
 
 import kr.or.ddit.mvc.annotation.resolvers.HandlerMethodArgumentResolver;
 import kr.or.ddit.mvc.annotation.resolvers.ModelAttribteArgumentResolver;
+import kr.or.ddit.mvc.annotation.resolvers.RequestHeaderMethodArgumentResolver;
 import kr.or.ddit.mvc.annotation.resolvers.RequestParamArgumentResolver;
+import kr.or.ddit.mvc.annotation.resolvers.RequestPartArgumentResolver;
+import kr.or.ddit.mvc.annotation.resolvers.ServletCookieValueArgumentResolver;
 import kr.or.ddit.mvc.annotation.resolvers.ServletSpecArgumentResolver;
+import kr.or.ddit.mvc.annotation.resolvers.SessionAttribteArgumentResolver;
 
 public class RequestMappingHandlerAdapter implements HandlerAdapter {
 	private List<HandlerMethodArgumentResolver> argumentResolvers;
@@ -23,6 +27,10 @@ public class RequestMappingHandlerAdapter implements HandlerAdapter {
 		argumentResolvers.add(new ServletSpecArgumentResolver());
 		argumentResolvers.add(new ModelAttribteArgumentResolver());
 		argumentResolvers.add(new RequestParamArgumentResolver());
+		argumentResolvers.add(new RequestHeaderMethodArgumentResolver());
+		argumentResolvers.add(new SessionAttribteArgumentResolver());
+		argumentResolvers.add(new ServletCookieValueArgumentResolver());
+		argumentResolvers.add(new RequestPartArgumentResolver());
 	}
 	
 	private HandlerMethodArgumentResolver findHandlerArgumentResolver(Parameter parameter) {

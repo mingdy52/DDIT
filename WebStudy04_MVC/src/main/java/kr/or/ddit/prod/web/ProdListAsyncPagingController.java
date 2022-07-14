@@ -9,8 +9,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.core.config.plugins.validation.constraints.Required;
 
-import kr.or.ddit.mvc.annotation.resolvers.ModelAttribute;
+import kr.or.ddit.mvc.annotation.resolvers.ModelAtrribute;
+import kr.or.ddit.mvc.annotation.resolvers.RequestHeader;
 import kr.or.ddit.mvc.annotation.resolvers.RequestParam;
 import kr.or.ddit.mvc.annotation.stereotype.Controller;
 import kr.or.ddit.mvc.annotation.stereotype.RequestMapping;
@@ -29,14 +31,15 @@ public class ProdListAsyncPagingController{
 	
 	@RequestMapping("/prod/prodList_async.do")
 	public String prodListAsync(
-			@RequestParam(value="page", required=false, defaultValue="1") int currentPage
-			, @ModelAttribute("detailCondition") ProdVO detailCondition
+			@RequestHeader(value="accept", required=false, defaultValue="text/html") String accept
+			, @RequestParam(value="page", required=false, defaultValue="1") int currentPage
+			, @ModelAtrribute("detailCondition") ProdVO detailCondition
 			, HttpServletRequest req
 	){
 		req.setAttribute("lprodList", othersDAO.selectLprodList());
 		req.setAttribute("buyerList", othersDAO.selectBuyerList());
 
-		String accept = req.getHeader("accept");
+//		String accept = req.getHeader("accept");
 		String viewName = null;
 		if(StringUtils.containsIgnoreCase(accept, "json")) {
 			viewName = processJsonData(currentPage, detailCondition, req);
@@ -52,7 +55,7 @@ public class ProdListAsyncPagingController{
 	
 	public String processJsonData(
 			@RequestParam(value="page", required=false, defaultValue="1") int currentPage
-			, @ModelAttribute("detailCondition") ProdVO detailCondition
+			, @ModelAtrribute("detailCondition") ProdVO detailCondition
 			, HttpServletRequest req
 	){
 		
