@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:c="http://www.springframework.org/schema/c"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd">
+	
+<!-- 	<context:annotation-config />  아래 스캔을 넣어주면 생략 가능 -->
+	<context:component-scan base-package="kr.or.ddit.sample" use-default-filters="false">
+		<context:include-filter type="annotation" expression="org.springframework.stereotype.Component"/>
+		<context:include-filter type="annotation" expression="org.springframework.stereotype.Service"/>
+		<context:include-filter type="annotation" expression="org.springframework.stereotype.Repository"/>
+<!-- 		<context:include-filter type="annotation" expression="kr.or.ddit.sample.stereotype.ViewLayer"/> -->
+	</context:component-scan>
+<!-- 	base-package 패키지 아래에 있는 애들 중 빈으로 등록된 애들을 스캔하겠다. -->
+
+<!-- 특정 영역(package) 아래 클래스를 bean 으로 등록하기 위한 조건. -->
+<!-- annotation 기반 등록 -->
+<!-- @Component -->
+<!-- @Repository -->
+<!-- @Service -->
+<!-- @Controller -->
+<!-- @RestController (responseBody + controller) -->
+<!-- @ControllerAdvice -->
+
+<!-- @Configuration  -->
+<!-- 스프링 관점에서 보면 이중 뭘 쓰던 상관 없음. -->
+<!-- 코드의 가독성과 코드의 의미부여를 위해(사람 편하려고) 나눔. -->
+
+
+<!-- 의존성 주입 -->
+<!-- @AutoWired : type 기반의 검색 및 주임, 유일한 빈이 없는 경우, 예외 발생. -->
+<!-- @Resouce : 다양한 검색 조건으로 주입 조건 설정. -->
+<!-- @Inject : @AutoWired 와 동일한 구조로 주입. -->
+<!-- @Inject + @Named : @Resource(name) 과 동일한 구조로 주입. -->
+
+<!-- 생명주기 callback -->
+<!-- @PostConstruct : init-method, ** 생성된 객체의 모든 주입 동작이 종료된 이후, 초기화 callback 이 실행됨. -->
+<!-- @PreDestroy : destroy-method -->
+</beans>

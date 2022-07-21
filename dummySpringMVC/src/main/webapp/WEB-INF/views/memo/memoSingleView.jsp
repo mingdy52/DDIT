@@ -39,7 +39,7 @@ crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 	<h4>메모 수정 폼</h4>
 		<input type="text" name="_method" value="put" placeholder="method"/>
 <!-- 		hidden 메소드 구문. 이 폼이 서버로 넘어가면 post 를 무시하고 put으로 처리함. -->
-<!-- 		<input type="hidden" name="code" /> -->
+		<input type="text" name="code" />
 		<input type="text" name="writer" />
 		<textarea name="content"></textarea>
 		<input type="submit" value="메모 저장" />
@@ -129,7 +129,7 @@ crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 			if(resp && resp.length > 0){
 				$.each(resp, function(index, memo){
 					let trTag = makeMemoTr(memo);
-					trTag.push(trTag);
+					trTags.push(trTag);
 				});
 			} else {
 				trTags.push($("<tr>").html(
@@ -180,7 +180,7 @@ crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 	
 </script>
 
-<!-- RES(XML/JSON)Tful URI(자원의 식별자 - 명사형) : URI 로는 자원을 식별하고, method 로 자원에 대한 행위를 표현하는 방식. -->
+<!-- REST(XML/JSON)ful URI(자원의 식별자 - 명사형) : URI 로는 자원을 식별하고, method 로 자원에 대한 행위를 표현하는 방식. -->
 <!-- 이걸 -->
 <!-- /member/memberInsert.do -->
 <!-- 이렇게 바꿔보자. -->

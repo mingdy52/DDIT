@@ -1,5 +1,6 @@
 package kr.or.ddit.collection.properties;
 
+import kr.or.ddit.sample.service.SampleService;
 import lombok.Data;
 
 @Data
@@ -14,5 +15,7 @@ public class DBInfoVO {
 	private int initialSize;
 	private int maxWait;
 	private long maxTotal;
+	
+	private SampleService service;
 	
 }

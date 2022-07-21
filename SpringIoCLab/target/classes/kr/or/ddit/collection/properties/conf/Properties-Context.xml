@@ -19,6 +19,8 @@
 		p:initialSize="${maindb.initialSize}"
 		p:maxTotal="${maindb.maxWait}"
 		p:maxWait="${maindb.maxTotal}"
+		
+		p:service-ref="sampleService"
 	/>
 	
 	<util:properties id="dbInfo" location="classpath:dbInfo.properties">
@@ -33,6 +35,8 @@
 		p:initialSize="#{dbInfo['initialSize']}"
 		p:maxTotal="#{dbInfo['maxTotal']}"
 		p:maxWait="#{dbInfo.maxWait}"
+		
+		p:service-ref="sampleService"
 	/>
 
 

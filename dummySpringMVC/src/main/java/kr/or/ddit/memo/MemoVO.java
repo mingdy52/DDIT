@@ -21,6 +21,7 @@ import lombok.ToString;
 public class MemoVO {
 	@Min(value=1, groups= {UpdateGroup.class, DeleteGroup.class})
 	private int code;
+	
 	@NotBlank
 	private String writer;
 	private String content;

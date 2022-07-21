@@ -4,6 +4,8 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import javax.inject.Inject;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.Errors;
@@ -17,6 +19,7 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import kr.or.ddit.InsertGroup;
+import kr.or.ddit.memo.service.MemoService;
 
 /**
  * /memo/write.do (작성)
@@ -27,7 +30,8 @@ import kr.or.ddit.InsertGroup;
 @RequestMapping("/memo")
 public class MemoController {
 	
-	public static Map<Integer, MemoVO> memoTable = new LinkedHashMap<>();
+	@Inject
+	private MemoService service;
 	
 	@ModelAttribute("memo")
 	public MemoVO memo() {
@@ -49,22 +53,23 @@ public class MemoController {
 	public String memoWrite(@Validated(InsertGroup.class)/*그룹 검증 가능*/ @ModelAttribute("memo") MemoVO memo // command object
 //									위에 만들어진 memoVO 를 가지고 옴. 이미 VO 안에는 필요한 데이터를 받은 VO 가 들어 있음.
 									, Errors errors // MemoVO 의 모든 검증 결과를 가지고 있음.
+									, RedirectAttributes redirectAttributes
 								) {
 		
 		if(errors.hasErrors()) {
 			return "memo/memoForm";
 			
 		} else {
-			int length = memoTable.size();
-			memo.setCode(length+1);
-			memoTable.put(memo.getCode(), memo);
+			Map<Integer, MemoVO> memoList = service.createMemo(memo);
+			redirectAttributes.addFlashAttribute("memoList", memoList);
 			return "redirect:/memo/list.do";
 		}
 	}
 	
 	@GetMapping("list.do")
 	public ModelAndView getListHandler() {
-		Collection<MemoVO> memoList = memoTable.values();
+		Map<Integer, MemoVO> memo = service.retrieveMemoList();
+		Collection<MemoVO> memoList = memo.values();
 		ModelAndView mav = new ModelAndView();
 		mav.addObject("memoList", memoList); // model.addAttribute
 		mav.setViewName("memo/memoList");
