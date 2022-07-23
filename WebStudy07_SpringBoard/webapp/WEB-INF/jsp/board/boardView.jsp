@@ -1,5 +1,5 @@
 <%@page import="kr.or.ddit.board.vo.BoardVO"%>
-<%@page import="kr.or.ddit.board.vo.PagingVO"%>
+<%@page import="kr.or.ddit.common.vo.PagingVO"%>
 <%@page import="org.springframework.ui.Model"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>

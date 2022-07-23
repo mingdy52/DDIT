@@ -23,5 +23,4 @@
 		annotation="org.apache.ibatis.annotations.Mapper"
 		factory-ref="sqlSessionFactory"
 	/>
-	
 </beans>

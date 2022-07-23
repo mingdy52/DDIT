@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.buyer.dao.BuyerDAO">
+	
+	<select id="totalRecord" resultType="int">
+		SELECT COUNT(*)
+		FROM BUYER
+	</select>
+	<select id="selectBuyerList" parameterType="PagingVO" resultType="BuyerVO">
+		SELECT B.*
+		FROM (
+		    SELECT ROWNUM RNUM, A.*
+		    FROM (
+		        SELECT A.*, B.LPROD_NM
+		        FROM BUYER A INNER JOIN LPROD B ON(A.BUYER_LGU = B.LPROD_GU)
+		        ORDER BY BUYER_ID
+		    ) A
+		)B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+	
+	<select id="selectBuyer" parameterType="String" resultType="BuyerVO">
+		SELECT *
+		FROM BUYER
+		WHERE BUYER_ID = #{buyerId}
+	</select>
+
+</mapper>

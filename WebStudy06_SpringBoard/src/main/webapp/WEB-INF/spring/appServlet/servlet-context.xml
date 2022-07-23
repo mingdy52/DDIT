@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:c="http://www.springframework.org/schema/c"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.3.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd">
+	
+	<context:component-scan base-package="kr.or.ddit" use-default-filters="false">
+		<context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+		<context:include-filter type="annotation" expression="org.springframework.web.bind.annotation.ControllerAdvice"/>
+	</context:component-scan>
+
+	<mvc:annotation-driven validator="validator"></mvc:annotation-driven>
+	<bean id="validator" class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean" 
+		p:validationMessageSource-ref="messageSource"
+	/>
+	
+	<bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource" 
+		p:basenames="kr.or.ddit.msgs.message,kr.or.ddit.msgs.errorMessage"
+	/>
+	
+	<bean id="IRVR" class="org.springframework.web.servlet.view.InternalResourceViewResolver" 
+		p:prefix="/WEB-INF/views/"
+		p:suffix=".jsp"
+	/>
+	
+	<bean id="BNVR" class="org.springframework.web.servlet.view.BeanNameViewResolver" 
+		p:order="1"
+	/>
+	<bean class="org.springframework.web.servlet.view.tiles3.TilesConfigurer" 
+		p:definitions="/WEB-INF/tiles/*-definitions.xml"
+	/>
+	<bean class="org.springframework.web.servlet.view.tiles3.TilesViewResolver" 
+		p:order="2"
+	/>
+	
+	<bean id="jsonView" class="org.springframework.web.servlet.view.json.MappingJackson2JsonView" />
+	
+	
+	<mvc:resources location="/resources/" mapping="/resources/**" cache-period="0" />
+	
+	<bean id="localeResolver" class="org.springframework.web.servlet.i18n.CookieLocaleResolver" 
+		p:cookieName="localeCookie"
+		p:cookieMaxAge="#{60*60*24*7}"
+		p:cookiePath="/"
+	/>
+	<mvc:interceptors>
+		<bean class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor" 
+			p:paramName="lang"
+		/>
+	</mvc:interceptors>
+
+</beans>

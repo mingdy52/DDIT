@@ -15,10 +15,10 @@
 	</context:component-scan>
 
 	<mvc:annotation-driven validator="validator"></mvc:annotation-driven>
-	
 	<bean id="validator" class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean" 
 		p:validationMessageSource-ref="messageSource"
 	/>
+	
 	<bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource" 
 		p:basenames="kr.or.ddit.msgs.message,kr.or.ddit.msgs.errorMessage"
 	/>
@@ -48,6 +48,7 @@
 		p:cookieMaxAge="#{60*60*24*7}"
 		p:cookiePath="/"
 	/>
+	
 	<mvc:interceptors>
 		<bean class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor" 
 			p:paramName="lang"

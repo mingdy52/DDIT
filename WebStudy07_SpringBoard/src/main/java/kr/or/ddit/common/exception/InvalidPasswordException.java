@@ -1,4 +1,4 @@
-package kr.or.ddit.board.exception;
+package kr.or.ddit.common.exception;
 
 public class InvalidPasswordException extends RuntimeException {
 

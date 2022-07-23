@@ -5,7 +5,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 
 import kr.or.ddit.board.vo.BoardVO;
-import kr.or.ddit.board.vo.PagingVO;
+import kr.or.ddit.common.vo.PagingVO;
 
 @Mapper
 public interface BoardDAO {

@@ -62,8 +62,4 @@
 		</tr>
 	</table>
 </form:form>
-<script>
-	CKEDITOR.replace('boContent',{
-		filebrowserImageUploadUrl : $.CPATH + "/board/image?command=imageUpload"
-	});
-</script>
+<script src="${cPath}/resources/board/boardForm.js"></script>

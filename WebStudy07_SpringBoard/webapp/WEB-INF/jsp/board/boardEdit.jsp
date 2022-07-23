@@ -4,7 +4,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <script src="${cPath }/resources/js/ckeditor/ckeditor.js"></script>
 
-<form:form modelAttribute="board" action="${cPath }/board/${board.boNo }" method="post" enctype="multipart/form-data">
+<form:form action="${cPath }/board/${board.boNo }" method="post" enctype="multipart/form-data" modelAttribute="board">
 	<input type="hidden" name="_method" value="put" />
 	<table class="table table-bordered">
 		<tr>
@@ -45,19 +45,13 @@
 		<tr>
 			<th>첨부파일(기존)</th>
 			<td>
-				<c:if test="${not empty board.attatchList }">
-					<c:forEach items="${board.attatchList }" var="attatch" varStatus="vs">
-						<span>
-							${attatch.attFilename }
-							<span class="btn btn-danger delBtn" data-att-no="${attatch.attNo }">DEL</span>
-							<c:if test="${not vs.last }"> | </c:if>
-						</span>
-					</c:forEach>
-				</c:if>
-				<c:if test="${empty board.attatchList }">
-					첨부파일 없음.
-				</c:if>
-				
+				<c:forEach items="${board.attatchList }" var="attatch" varStatus="vs">
+					<span>
+						${attatch.attFilename }
+						<span class="btn btn-danger delBtn" data-att-no="${attatch.attNo }">DEL</span>
+						<c:if test="${not vs.last }"> | </c:if>
+					</span>
+				</c:forEach>
 			</td>
 		</tr>
 		<tr>

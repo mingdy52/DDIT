@@ -18,10 +18,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import kr.or.ddit.board.dao.AttatchDAO;
 import kr.or.ddit.board.dao.BoardDAO;
-import kr.or.ddit.board.exception.InvalidPasswordException;
 import kr.or.ddit.board.vo.AttatchVO;
 import kr.or.ddit.board.vo.BoardVO;
-import kr.or.ddit.board.vo.PagingVO;
+import kr.or.ddit.common.exception.InvalidPasswordException;
+import kr.or.ddit.common.vo.PagingVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

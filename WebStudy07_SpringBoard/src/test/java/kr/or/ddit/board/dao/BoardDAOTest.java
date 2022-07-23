@@ -9,7 +9,7 @@ import org.junit.Test;
 
 import kr.or.ddit.AbstractTest;
 import kr.or.ddit.board.vo.BoardVO;
-import kr.or.ddit.board.vo.PagingVO;
+import kr.or.ddit.common.vo.PagingVO;
 
 
 public class BoardDAOTest extends AbstractTest {

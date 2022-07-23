@@ -1,4 +1,4 @@
-package kr.or.ddit.board.vo;
+package kr.or.ddit.common.vo;
 
 import java.util.List;
 
@@ -35,7 +35,7 @@ public class PagingVO<T> {
 	private List<T> dataList;
 //	페이징 구조가 생성될 때 리스트의 타입이 제한된다.
 	
-//	private SimpleSearchCondition simpleCondition;
+	private SimpleSearchCondition simpleCondition;
 	
 	private T detailCondition; // 상세 검색. prodVO 로 타입이 정해지면 prodVO에 있는 모든 프로퍼티로 검색 가능.
 	
@@ -58,9 +58,9 @@ public class PagingVO<T> {
 		this.dataList = dataList;
 	}
 	
-//	public void setSimpleCondition(SimpleSearchCondition simpleCondition) {
-//		this.simpleCondition = simpleCondition;
-//	}
+	public void setSimpleCondition(SimpleSearchCondition simpleCondition) {
+		this.simpleCondition = simpleCondition;
+	}
 	
 	public void setDetailCondition(T detailCondition) {
 		this.detailCondition = detailCondition;

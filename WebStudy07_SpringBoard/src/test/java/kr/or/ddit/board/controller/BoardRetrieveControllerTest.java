@@ -13,7 +13,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 import kr.or.ddit.AbstractTest;
 import kr.or.ddit.board.vo.BoardVO;
-import kr.or.ddit.board.vo.PagingVO;
+import kr.or.ddit.common.vo.PagingVO;
 
 public class BoardRetrieveControllerTest extends AbstractTest {
 	

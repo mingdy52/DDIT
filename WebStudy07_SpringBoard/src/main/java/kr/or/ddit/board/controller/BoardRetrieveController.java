@@ -17,7 +17,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import kr.or.ddit.board.service.BoardService;
 import kr.or.ddit.board.vo.BoardVO;
-import kr.or.ddit.board.vo.PagingVO;
+import kr.or.ddit.common.vo.PagingVO;
+import kr.or.ddit.common.vo.SimpleSearchCondition;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -38,6 +39,11 @@ public class BoardRetrieveController {
 	@Inject
 	private BoardService service;
 	
+	@ModelAttribute("simpleCondition")
+	public SimpleSearchCondition simpleCondition() {
+		return new SimpleSearchCondition();
+	}
+	
 	@GetMapping
 	public String getView() {
 		return "board/boardList";
@@ -52,12 +58,12 @@ public class BoardRetrieveController {
 	@GetMapping(produces=MediaType.APPLICATION_JSON_UTF8_VALUE)
 	public PagingVO<BoardVO> getBoardList(
 			@RequestParam(name="page", required=false, defaultValue="1") int currentPage
-//						, @ModelAttribute("simpleCondition") SimpleSearchCondition simpleCondition
+			, @ModelAttribute("simpleCondition") SimpleSearchCondition simpleCondition
 			) {
 		log.info("currentPage: {}", currentPage);
 		PagingVO<BoardVO> pagingVO = new PagingVO<>();
 		pagingVO.setCurrentPage(currentPage);
-//		pagingVO.setSimpleCondition(simpleCondition);
+		pagingVO.setSimpleCondition(simpleCondition);
 		List<BoardVO> boardList = service.retrieveBoardList(pagingVO);
 		pagingVO.setDataList(boardList);
 		return pagingVO;

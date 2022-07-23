@@ -52,6 +52,7 @@ public class BoardVO implements Serializable {
 	}
 	
 	private transient List<AttatchVO> attatchList;
+	
 	private int startAttNo;
 	
 	private transient List<ReplyVO> replyList;
