@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.SessionAttributes;
 import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -38,13 +39,17 @@ public class BoardModifyController {
 	
 	@GetMapping("{boNo}/form")
 	public String boardEdit(
-			@PathVariable int boNo 
+			@PathVariable int boNo
+			, @RequestParam(required=false) int[] delAttNos
 			, Model model
 			) {
 		
+		BoardVO board = service.retrieveBoard(boNo);
+		
 		if(!model.containsAttribute("board")) {
-			BoardVO board = service.retrieveBoard(boNo);
 			model.addAttribute("board", board);
+		} else {
+			List<AttatchVO> attatchList = board.getAttatchList();
 		}
 		
 		return "board/boardEdit";
