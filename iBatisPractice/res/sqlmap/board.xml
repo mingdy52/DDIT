@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap
+			PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+			"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="board">			
+
+	<insert id="writeNew" parameterClass="vo.BoardHwVO">
+		insert into JDBC_BOARD 
+		values (board_seq.nextval, 
+				#boTitle# , #boWriter# , sysdate , #boContent#)
+		
+		
+	</insert>
+	
+	<update id="updatePost" parameterClass="vo.BoardHwVO">
+		update JDBC_BOARD 
+			set BOARD_CONTENT = #boContent# 
+			where BOARD_NO = #boNo#
+	</update>
+	
+	<delete id="deletePost" parameterClass="String">
+      delete from JDBC_BOARD where BOARD_TITLE = #boTitle#
+    </delete>
+
+
+	<resultMap id="boMap" class="boVO">
+		<result property="boNo" column="BOARD_NO" />
+		<result property="boTitle" column="BOARD_TITLE" />
+		<result property="boWriter" column="BOARD_WRITER" />
+		<result property="boDate" column="BOARD_DATE" />
+		<result property="boContent" column="BOARD_CONTENT" />
+	</resultMap>
+	
+	<select id="displayAll" resultMap="boMap">
+	  select * from JDBC_BOARD
+	</select>
+
+	<select id="search" parameterClass="vo.BoardHwVO" resultMap="boMap">
+	  select * from JDBC_BOARD where 1=1
+	<isNotEmpty property="boTitle">
+		and BOARD_TITLE like '%' || #boTitle# || '%' 
+	</isNotEmpty>
+	<isNotEmpty property="boWriter">
+		and BOARD_WRITER=#boWriter# 
+	</isNotEmpty>
+	<isNotEmpty property="boContent">
+		and BOARD_CONTENT like '%'|| #boContent# || '%' 
+	</isNotEmpty>
+	</select>
+
+</sqlMap>			
+
+
+
+
+

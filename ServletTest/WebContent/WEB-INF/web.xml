@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd" version="3.0">
+  <display-name>ServletTest</display-name>
+
+ <servlet>
+	<servlet-name>T01_ServletLifeCycle</servlet-name>
+	<servlet-class>basic.T01_ServletLifeCycle</servlet-class>
+	<init-param>
+		<param-name>init-param</param-name>
+		<param-value>서블릿초기화</param-value>
+	</init-param>
+<!-- 	숫자가 적을수록 우선순위가 높음 -->
+	<load-on-startup>1</load-on-startup>
+ </servlet>
+ <servlet-mapping>
+ 	<servlet-name>T01_ServletLifeCycle</servlet-name>
+	<url-pattern>/T01_ServletLifeCycle</url-pattern>
+ </servlet-mapping>
+
+ <servlet>
+ 	<servlet-name>T02_ServletTest</servlet-name>
+ 	<servlet-class>basic.T02_ServletTest</servlet-class>
+ </servlet>
+ <servlet-mapping>
+ 	<servlet-name>T02_ServletTest</servlet-name>
+	<url-pattern>/T02_ServletTest</url-pattern>
+ </servlet-mapping>
+ 
+ <servlet>
+ 	<servlet-name>T03_ServletParameterTest</servlet-name>
+ 	<servlet-class>basic.T03_ServletParameterTest</servlet-class>
+ </servlet>
+ <servlet-mapping>
+ 	<servlet-name>T03_ServletParameterTest</servlet-name>
+	<url-pattern>/T03_ServletParameterTest</url-pattern>
+ </servlet-mapping>
+ 
+ <servlet>
+ 	<servlet-name>T04_ErrorHandler</servlet-name>
+ 	<servlet-class>basic.T04_ErrorHandler</servlet-class>
+ </servlet>
+ <servlet-mapping>
+ 	<servlet-name>T04_ErrorHandler</servlet-name>
+	<url-pattern>/T04_ErrorHandler</url-pattern>
+ </servlet-mapping>
+ 
+ <servlet>
+ 	<servlet-name>T05_ServletCookieTest</servlet-name>
+ 	<servlet-class>basic.T05_ServletCookieTest</servlet-class>
+ </servlet>
+ <servlet-mapping>
+ 	<servlet-name>T05_ServletCookieTest</servlet-name>
+	<url-pattern>/T05_ServletCookieTest</url-pattern>
+ </servlet-mapping>
+ 
+ <servlet>
+ 	<servlet-name>T06_ServletSessionTest</servlet-name>
+ 	<servlet-class>basic.T06_ServletSessionTest</servlet-class>
+ </servlet>
+ <servlet-mapping>
+ 	<servlet-name>T06_ServletSessionTest</servlet-name>
+	<url-pattern>/T06_ServletSessionTest</url-pattern>
+ </servlet-mapping>
+ 
+ <servlet>
+ 	<servlet-name>T07_ServletContextText</servlet-name>
+ 	<servlet-class>basic.T07_ServletContextText</servlet-class>
+ </servlet>
+ <servlet-mapping>
+ 	<servlet-name>T07_ServletContextText</servlet-name>
+	<url-pattern>/T07_ServletContextText</url-pattern>
+ </servlet-mapping>
+ 
+ <servlet>
+ 	<servlet-name>T09_SessionListenerTest</servlet-name>
+ 	<servlet-class>basic.T09_SessionListenerTest</servlet-class>
+ </servlet>
+ <servlet-mapping>
+ 	<servlet-name>T09_SessionListenerTest</servlet-name>
+	<url-pattern>/T09_SessionListenerTest</url-pattern>
+ </servlet-mapping>
+ 
+ <servlet>
+ 	<servlet-name>T10_ServletContextListenerTest</servlet-name>
+ 	<servlet-class>basic.T10_ServletContextListenerTest</servlet-class>
+ </servlet>
+ <servlet-mapping>
+ 	<servlet-name>T10_ServletContextListenerTest</servlet-name>
+	<url-pattern>/T10_ServletContextListenerTest</url-pattern>
+ </servlet-mapping>
+ 
+ <listener>
+ 	<listener-class>basic.MyHttpSessionListener</listener-class>
+ </listener>
+ 
+ <listener>
+ 	<listener-class>basic.MyServletContextListener</listener-class>
+ </listener>
+ 
+<!--  필터 체인은 순서가 중요 -->
+ <filter>
+ 	<filter-name>CharacterEncodingFilter</filter-name>
+ 	<filter-class>util.CharacterEncodingFilter</filter-class>
+ </filter>
+ <filter-mapping>
+ 	<filter-name>CharacterEncodingFilter</filter-name>
+ 	<url-pattern>/*</url-pattern>
+ </filter-mapping>
+ 
+ <filter>
+ 	<filter-name>T08_ServletFilter</filter-name>
+ 	<filter-class>basic.T08_ServletFilter</filter-class>
+ 	<init-param>
+ 		<param-name>init-param</param-name>
+ 		<param-value>파라미터값입니다.</param-value>
+ 	</init-param>
+ </filter>
+ <filter-mapping>
+ 	<filter-name>T08_ServletFilter</filter-name>
+ 	<url-pattern>/*</url-pattern>
+ </filter-mapping>
+ 
+ <filter>
+ 	<filter-name>T08_ServletFilter2</filter-name>
+ 	<filter-class>basic.T08_ServletFilter2</filter-class>
+ </filter>
+ <filter-mapping>
+ 	<filter-name>T08_ServletFilter2</filter-name>
+ 	<url-pattern>/*</url-pattern>
+ </filter-mapping>
+
+ 
+ <error-page>
+ 	<error-code>404</error-code>
+ 	<location>/T04_ErrorHandler</location>
+ </error-page>
+ 
+ <error-page>
+ 	<exception-type>javax.servlet.ServletException</exception-type>
+ 	<location>/T04_ErrorHandler</location>
+ </error-page>
+ 
+ <session-config>
+ 	<session-timeout>1</session-timeout>
+ </session-config>
+</web-app>
