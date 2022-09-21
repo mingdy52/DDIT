@@ -1,0 +1,550 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.expert.dao.ExpertDAO">
+
+   <resultMap type="ExpertVO" id="expertMap" autoMapping="true" >
+   	<id property="expertId" column="EXPERT_ID"/>
+   	<collection property="eprodList" ofType="EProdVO" autoMapping="true"/>
+   	<collection property="memList" ofType="MemberVO" autoMapping="true"/>
+   </resultMap>
+   
+   <resultMap type="ExpWishVO" id="wishMap">
+   	<id property="eprodNum" column="EPROD_NUM"/>
+   	<collection property="eprod" ofType="EProdVO" autoMapping="true"/>
+   </resultMap>
+   
+   <sql id="stateFrag">
+	       	<if test="simpleCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+		       AND
+		       <choose>
+		       	<when test="simpleCondition.searchType eq 'myExpert.comCodeNm'">
+		       		 INSTR(COM_CODE_NM, #{simpleCondition.searchWord}) > 0 
+		       	</when>
+		       	<otherwise>
+		       	    (
+			    	 INSTR(COM_CODE_NM, #{simpleCondition.searchWord}) > 0
+		       		 )
+		       	</otherwise>
+		       </choose>
+		     </if>
+   </sql>
+   	<sql id="searchFrag">
+			
+	       	<if test="simpleCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+		       AND
+		       <choose>
+		       	<when test="simpleCondition.searchType eq 'eprod.eprodName'">
+		       		 INSTR(EXPERT_ID, #{simpleCondition.searchWord}) > 0 
+		       	</when>
+		       	<when test="simpleCondition.searchType eq 'eprod.expertId'">
+		       		 INSTR(EPROD_NAME, #{simpleCondition.searchWord}) > 0 
+		       	</when>
+		       	<when test="simpleCondition.searchType eq 'eprod.expertTag'">
+		       		 INSTR(EPROD_TAG, #{simpleCondition.searchWord}) > 0 
+		       	</when>
+		       	<otherwise>
+		       	    (
+			    	 INSTR(EXPERT_ID, #{simpleCondition.searchWord}) > 0
+			    	 OR
+			    	 INSTR(EPROD_NAME, #{simpleCondition.searchWord}) > 0 
+			    	 OR
+			    	 INSTR(EPROD_TAG, #{simpleCondition.searchWord}) > 0 
+		       		 )
+		       	</otherwise>
+		       </choose>
+		     </if>
+	</sql>
+   <select id="selectTotalRecord" resultType="int">
+      SELECT COUNT(*)
+        FROM TB_EXP_PROD
+   </select>
+   <select id="selectTotalexpertRecord" resultType="int">
+   	 SELECT COUNT(*)
+        FROM TB_EXPERT
+   </select>
+   
+   <select id="selectExpNum" resultType="String">
+   SELECT fn_create_num(to_char(SYSDATE,'YYMMDD'), 'tb_exp_form', 'ex_form_num', UPPER('exfm'))
+		FROM DUAL
+   </select>
+   
+   <select id="selectEprodList" parameterType="PagingVO" resultType="EProdVO">
+      SELECT B.*
+      FROM (
+         SELECT ROWNUM RNUM, A.*
+           FROM (
+            SELECT
+				 EPROD_NUM
+			    ,EXPERT_ID
+			    ,(CASE
+                    WHEN LENGTH(EPROD_NAME) > 20 
+                    THEN SUBSTR(EPROD_NAME,1,20)||'...' 
+                    ELSE EPROD_NAME
+                    END) AS EPROD_NAME
+			    ,(CASE
+                    WHEN LENGTH(EPROD_SUMMARY) > 20
+                    THEN SUBSTR(EPROD_SUMMARY,1,20)||'...' 
+                    ELSE EPROD_SUMMARY
+                    END) AS EPROD_SUMMARY
+			    ,EPROD_TAG
+			    ,REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR(EPROD_PRICE)), '(\d{3})','\1,')), '^,','') AS EPROD_PRICE
+			    ,TO_CHAR(EPROD_DATE, 'YYYY-MM-DD') EPROD_DATE
+			    ,ACCUM_NUM
+            FROM TB_EXP_PROD
+			WHERE EPROD_DEL='N'
+            <include refid="searchFrag" />
+            ORDER BY ROWID DESC
+                ) A
+           ) B
+      WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+        
+
+
+   </select>
+   
+      <select id="selectExpertList" parameterType="PagingVO" resultType="ExpertVO">
+      SELECT B.*
+      FROM (
+         SELECT ROWNUM RNUM, A.*
+           FROM (
+            SELECT
+				EXPERT_ID,
+			    PROFILE_IMG,
+			    PRESENTATION,
+			    ASSUME,
+			    ACCUM_REP,
+			    EX_LINK,
+			    EX_TAG
+            FROM TB_EXPERT
+           WHERE EX_DEL='N'
+            ORDER BY ROWID DESC
+                ) A
+           ) B
+    
+      WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+   </select>
+   
+   
+   <select id="selectEprod" parameterType="String" resultType="EProdVO">
+	  SELECT
+		    A.EPROD_NUM,
+		    A.EXPERT_ID,
+		    A.EPROD_NAME,
+		    A.EPROD_SUMMARY,
+		    A.EPROD_TAG,
+		    REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR(A.EPROD_PRICE)), '(\d{3})','\1,')), '^,','') AS EPROD_PRICE,
+		    A.EPROD_DATE,
+		    A.ACCUM_NUM,
+		    A.EPROD_LANG_CODE,
+            B.PROFILE_IMG
+		FROM
+		    TB_EXP_PROD A, TB_EXPERT B
+		WHERE EPROD_NUM=#{eprodNum, jdbcType=VARCHAR}
+		  AND EPROD_DEL='N'
+		  AND A.EXPERT_ID = B.EXPERT_ID
+		
+   </select>
+   
+   <select id="selectExpert" parameterType="String" resultMap="expertMap" >
+	  SELECT  A.EXPERT_ID,
+			        A.PROFILE_IMG,
+			        A.PRESENTATION,
+			        A.ASSUME,
+			        A.ACCUM_REP,
+			        A.EX_LINK,
+			        A.EX_TAG,
+			        B.EXPERT_ID,
+			        (CASE
+                    WHEN LENGTH(B.EPROD_NAME) > 20 
+                    THEN SUBSTR(B.EPROD_NAME,1,20)||'...' 
+                    ELSE B.EPROD_NAME
+                    END) AS EPROD_NAME,
+			        REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR(B.EPROD_PRICE)), '(\d{3})','\1,')), '^,','') AS EPROD_PRICE,
+			        B.EPROD_NUM,
+			        TO_CHAR(B.EPROD_DATE, 'YYYY-MM-DD') EPROD_DATE,
+			        B.EPROD_TAG,
+	                C.MEM_NAME,
+	                C.MEM_NICK,
+	                C.MEM_MAIL,
+	                C.MEM_HP
+			  FROM TB_EXPERT A LEFT OUTER JOIN TB_EXP_PROD B ON(A.EXPERT_ID=B.EXPERT_ID)
+	          INNER JOIN TB_MEMBER C ON(C.MEM_ID=A.EXPERT_ID)
+			 WHERE A.EXPERT_ID=#{expertId, jdbcType=VARCHAR}
+			   AND A.EX_DEL ='N'
+   </select>
+   
+   <insert id="insertExpertForm" parameterType="ExpFormVO">
+		INSERT INTO TB_EXP_FORM 
+		    (
+			    EX_FORM_NUM,
+			    APPLICANT_ID,
+			    EX_FORM_CONTENT,
+			    EX_FORM_ASSUME
+		    )
+		VALUES(    
+		      #{exFormNum,jdbcType=VARCHAR}
+			, #{applicantId,jdbcType=VARCHAR}
+			, #{exFormContent,jdbcType=VARCHAR}
+			, #{exFormAssume,jdbcType=VARCHAR}
+
+		)
+   </insert>
+   
+    <insert id="insertExpertPay" parameterType="ExpertPaymentVO">
+
+	     INSERT INTO tb_eprod_payment (
+				     EPAY_NUM
+				    ,MY_EPROD
+				    ,AMOUNT
+				    ,EPAY_DATE
+				    ,EPAY_METHOD_CODE
+				    ,EPAY_YN
+		) VALUES (
+				    fn_create_num(to_char(sysdate,'yymmdd'), 'TB_EPROD_PAYMENT', 'EPAY_NUM', UPPER('epay'))
+				    ,#{myEprod,jdbcType=VARCHAR}
+				    ,#{amount}
+				    , SYSDATE
+				    ,'PM02'
+				    ,'Y'
+		)
+    </insert>
+    
+    <select id="selectExpertpayNum" resultType="String"> 
+			SELECT  MAX(MY_EPROD)
+			  FROM TB_MYEXPERT
+    </select>
+    
+	<insert id="insertMyexpert" parameterType="kr.or.ddit.expert.vo.MyExpertVO">
+		
+		INSERT INTO TB_MYEXPERT (
+		    MY_EPROD,
+		    BUYER_ID,
+		    EPROD_NUM,
+		    PROGRESS_CODE,
+		    EPROD_NAME,
+		    EPROD_SUMMARY,
+		    EPROD_PRICE
+		) VALUES (
+		    fn_create_num(to_char(sysdate,'yymmdd'), 'TB_MYEXPERT', 'MY_EPROD', UPPER('myep'))
+			, #{buyerId,jdbcType=VARCHAR}
+			, #{eprodNum,jdbcType=VARCHAR}
+			, 'PG01'
+			, #{eprodName,jdbcType=VARCHAR}
+			, #{eprodSummary,jdbcType=VARCHAR}
+			, #{eprodPrice}
+		)
+	</insert>
+	
+	<select id="selectTotalMyexpert" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(*)
+	          FROM TB_MYEXPERT
+	        WHERE BUYER_ID = #{detailCondition.buyerId}
+	</select>
+	
+	
+	<select id="selectMyexpert" parameterType="PagingVO" resultType="MyExpertVO">
+	   	 SELECT d.*
+    		  FROM (
+		         SELECT ROWNUM RNUM, c.*
+		           FROM (
+                         SELECT
+                        A.MY_EPROD,
+                        A.BUYER_ID,
+                        A.EPROD_NUM,
+                       (CASE
+	                    WHEN LENGTH(EPROD_NAME) > 13 
+	                    THEN SUBSTR(EPROD_NAME,1,13)||'...' 
+	                    ELSE A.EPROD_NAME
+	                    END) AS EPROD_NAME,
+                        A.EPROD_SUMMARY,
+                        REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR(A.EPROD_PRICE)), '(\d{3})','\1,')), '^,','') AS EPROD_PRICE,
+                        A.PROGRESS_CODE,
+                        B.COM_CODE_NM,
+                        TO_CHAR(EPAY_DATE, 'YYYY-MM-DD') EPAY_DATE
+                   FROM TB_MYEXPERT A LEFT OUTER JOIN TB_COM_CODE B ON(A.PROGRESS_CODE=B.COM_CODE)
+                                      LEFT OUTER JOIN TB_EPROD_PAYMENT C ON(A.MY_EPROD=C.MY_EPROD)
+                     WHERE A.BUYER_ID= #{detailCondition.buyerId}
+                       <include refid="stateFrag" />
+                	 ORDER BY A.MY_EPROD DESC
+                ) c
+           ) d
+      WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+	
+	<select id="myExpDetailList" parameterType="String" resultType="kr.or.ddit.expert.vo.MyExpDetailVO">
+			SELECT A.ANSWER_NUM, 
+			       A.MYEXP_ORDER, 
+			       A.MY_EPROD, 
+			       A.MYEXP_WRITER, 
+			       A.MYEXP_CONTENT, 
+			       A.MYEXP_DATE,
+			       C.COM_CODE_NM
+			FROM TB_MYEXP_DETAIL A LEFT OUTER JOIN TB_MYEXPERT B ON(A.MY_EPROD=B.MY_EPROD)
+			                       LEFT OUTER JOIN TB_COM_CODE C ON(B.PROGRESS_CODE=C.COM_CODE)
+		WHERE A.MY_EPROD = #{myEprod,jdbcType=VARCHAR}
+		ORDER BY MYEXP_ORDER
+	</select>
+	
+	<insert id="insertMyexpDetail" parameterType="kr.or.ddit.expert.vo.MyExpDetailVO">
+	<selectKey keyProperty="myexpOrder" resultType="int" order="BEFORE">
+		select count(*)+1
+		 from TB_MYEXP_DETAIL
+		where MY_EPROD=#{myEprod,jdbcType=VARCHAR}
+	</selectKey>
+	INSERT INTO tb_myexp_detail (
+			    ANSWER_NUM,
+			    MYEXP_ORDER,
+			    MY_EPROD,
+			    MYEXP_WRITER,
+			    MYEXP_CONTENT,
+			    MYEXP_DATE
+	) VALUES (
+			  fn_create_num(to_char(sysdate,'yymmdd'), 'tb_myexp_detail', 'answer_num', UPPER('answ'))
+			, #{myexpOrder,jdbcType=NUMERIC}
+			, #{myEprod,jdbcType=VARCHAR}
+			, #{myexpWriter,jdbcType=VARCHAR}
+			, #{myexpContent,jdbcType=CLOB}
+			, SYSDATE
+	)
+	</insert>
+	
+	<select id="writableReviewList" parameterType="String" resultType="MyExpertVO">
+		SELECT MY_EPROD,
+		       EPROD_NAME,
+		       REVIEW_YN
+		  FROM TB_MYEXPERT
+		 where BUYER_ID=#{buyerId,jdbcType=VARCHAR}
+		   and PROGRESS_CODE='PG03'
+		   and REVIEW_YN='N'
+	</select>
+	
+	<insert id="insertMyreview" parameterType="kr.or.ddit.expert.vo.ReviewVO">
+		INSERT INTO TB_REVIEW (
+				REVIEW_NUM,
+				REVIEW_WRITER,
+				MY_EPROD,
+				REVIEW_TITLE,
+				REVIEW_CONTENT,
+				REVIEW_DATE,
+				REVIEW_STAR
+	   ) VALUES (
+				 fn_create_num(to_char(sysdate,'yymmdd'), 'tb_review', 'review_num', UPPER('rvew'))
+				, #{reviewWriter,jdbcType=VARCHAR}
+				, #{myEprod,jdbcType=VARCHAR}
+				, #{reviewTitle,jdbcType=VARCHAR}
+				, #{reviewContent,jdbcType=CLOB}
+				, SYSDATE
+				, #{reviewStar,jdbcType=NUMERIC}
+				)
+	</insert>
+	
+	<update id="updateReviewYn" parameterType="String">
+		UPDATE TB_MYEXPERT
+		  SET
+		 	    REVIEW_YN='Y'
+		WHERE MY_EPROD=#{myEprod,jdbcType=VARCHAR}
+	</update>
+	<select id="selectmyreviewList" resultType="ReviewVO">
+		SELECT  REVIEW_NUM,
+			    MY_EPROD,
+			    REVIEW_TITLE,
+			    REVIEW_CONTENT,
+			    REVIEW_DATE,
+			    REVIEW_STAR
+		 FROM TB_REVIEW
+	    WHERE REVIEW_WRITER=#{reviewWriter,jdbcType=VARCHAR}
+	      AND REVIEW_DEL='N'
+	</select>
+	
+	<select id="selectmyreview" resultType="ReviewVO">
+		SELECT  REVIEW_NUM,
+			    MY_EPROD,
+			    REVIEW_TITLE,
+			    REVIEW_WRITER,
+			    REVIEW_CONTENT,
+			    REVIEW_DATE,
+			    REVIEW_STAR
+	      FROM TB_REVIEW
+		 WHERE REVIEW_NUM=#{reviewNum,jdbcType=VARCHAR}
+		   AND REVIEW_DEL='N'
+	</select>
+	
+	<update id="updateMyreview" parameterType="ReviewVO" >
+	    UPDATE TB_REVIEW
+    	   SET
+		  REVIEW_TITLE = #{reviewTitle,jdbcType=VARCHAR}
+		, REVIEW_CONTENT = #{reviewContent,jdbcType=CLOB}
+		, REVIEW_DATE = SYSDATE
+		, REVIEW_STAR = #{reviewStar,jdbcType=NUMERIC}
+	    WHERE REVIEW_NUM = #{reviewNum,jdbcType=VARCHAR}
+	</update>
+	
+	<select id="selectTotalWish" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(*)
+	          FROM TB_EXP_WISHLIST A, TB_EXP_PROD B
+	        WHERE A.MEM_ID = #{detailCondition.memId}
+              AND A.EPROD_NUM = B.EPROD_NUM
+	          AND B.EPROD_DEL ='N'
+	</select>
+	
+	<select id="selectmyWishList" parameterType="PagingVO" resultMap="wishMap"> 
+		  SELECT C.*
+            from (
+                  SELECT
+                        ROWNUM RNUM,
+                        A.WISH_ID,
+                        A.MEM_ID,
+                        A.EPROD_NUM,
+                        B.EXPERT_ID,
+                        B.EPROD_NAME,
+                        REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR(B.EPROD_PRICE)), '(\d{3})','\1,')), '^,','') AS EPROD_PRICE
+                      FROM TB_EXP_WISHLIST A LEFT OUTER JOIN TB_EXP_PROD B ON (A.EPROD_NUM=B.EPROD_NUM)
+                     WHERE A.MEM_ID=#{detailCondition.memId}
+                       AND B.EPROD_DEL ='N'
+                 )C 
+        WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+
+	</select>
+	
+	<insert id="insertWish" parameterType="kr.or.ddit.expert.vo.ExpWishVO">
+		INSERT INTO TB_EXP_WISHLIST (
+					    WISH_ID,
+					    MEM_ID,
+					    EPROD_NUM
+					) VALUES (
+					    fn_create_num(to_char(sysdate,'yymmdd'), 'tb_exp_wishlist', 'wish_id', UPPER('wish'))
+					    ,#{memId,jdbcType=VARCHAR}
+					    ,#{eprodNum,jdbcType=VARCHAR}
+					    
+					)
+					
+	</insert>
+	
+	<delete id="deleteWish" parameterType="ExpWishVO">
+	DELETE FROM TB_EXP_WISHLIST 
+	      WHERE MEM_ID=#{memId,jdbcType=VARCHAR}
+	        AND EPROD_NUM=#{eprodNum,jdbcType=VARCHAR}
+	</delete>
+	
+	<select id="selectWishYN" parameterType="ExpWishVO" resultType="ExpWishVO">
+	  SELECT    
+			WISH_ID,
+		    MEM_ID,
+		    EPROD_NUM
+	  FROM TB_EXP_WISHLIST
+	  WHERE MEM_ID=#{memId,jdbcType=VARCHAR}
+	    AND EPROD_NUM=#{eprodNum,jdbcType=VARCHAR}
+	</select>
+	
+	<select id="selectEprodReviewList" parameterType="String" resultType="ReviewVO">
+		SELECT 
+			    A.REVIEW_NUM,
+			    A.MY_EPROD,
+			    A.REVIEW_TITLE,
+			    A.REVIEW_CONTENT,
+			    TO_CHAR(A.REVIEW_DATE, 'YYYY-MM-DD') REVIEW_DATE,
+			    A.REVIEW_STAR,
+			    A.REVIEW_WRITER
+		  FROM TB_REVIEW A , TB_MYEXPERT B
+	 	 WHERE A.MY_EPROD=B.MY_EPROD
+		   AND B.EPROD_NUM=#{eprodNum,jdbcType=VARCHAR}
+	</select>
+	
+	<update id="deleteReview" parameterType="String">
+	  UPDATE TB_REVIEW
+		 SET
+		 	  REVIEW_DEL='Y'
+		WHERE REVIEW_NUM=#{reviewNum,jdbcType=VARCHAR}
+	</update>
+	
+	<select id="getExpertId" parameterType="String" resultType="String">
+		SELECT A.EXPERT_ID
+		  FROM TB_EXP_PROD  A, TB_MYEXPERT B
+		 WHERE A.EPROD_NUM=B.EPROD_NUM
+		   AND B.MY_EPROD=#{myEprod,jdbcType=VARCHAR}
+	</select>
+	
+	<select id="getBuyerId" parameterType="String" resultType="String">
+  	SELECT B.BUYER_ID
+	  FROM TB_EXP_PROD  A, TB_MYEXPERT B
+	  WHERE A.EPROD_NUM=B.EPROD_NUM
+  		AND B.MY_EPROD=#{myEprod,jdbcType=VARCHAR}
+	</select>
+	
+	<select id="selectRefundWhy" parameterType="String" resultType="String">	
+    SELECT B.COM_CODE_NM
+      FROM TB_EPROD_REFUND A, TB_COM_CODE B, TB_EPROD_PAYMENT C
+    WHERE  A.REFUND_REASON_CODE=B.COM_CODE
+      AND A.EPAY_NUM=C.EPAY_NUM
+      AND C.MY_EPROD=#{myEprod,jdbcType=VARCHAR}
+	</select>
+	
+	<select id="getRVBuyerId" parameterType="MyExpertVO" resultType="String">
+	SELECT BUYER_ID
+	  FROM TB_MYEXPERT
+	 WHERE REVIEW_YN=#{reviewYn,jdbcType=VARCHAR}
+	   AND MY_EPROD=#{myEprod,jdbcType=VARCHAR}
+       AND PROGRESS_CODE='PG03'
+	</select>
+	
+	<select id="selectReportList" resultType="ComCodeVO">
+		SELECT COM_CODE, COM_CODE_NM
+		  FROM TB_COM_CODE
+		WHERE COM_CODE_GRP='EXP_REPORT'
+	</select>
+	
+	<insert id="insertReportExp" parameterType="ReportVO">
+		INSERT INTO TB_REPORT (
+			    REP_NUM,
+			    REPORTER_ID,
+			    TARGET_ID,
+			    REP_DATE,
+			    REP_CONTENT
+			) VALUES (
+			    fn_create_num(to_char(sysdate,'yymmdd'), 'TB_REPORT', 'REP_NUM', UPPER('REPT'))
+			    , #{reporterId,jdbcType=VARCHAR}
+				, #{targetId,jdbcType=VARCHAR}
+				, SYSDATE
+				, #{repContent,jdbcType=VARCHAR}
+			)
+	</insert>
+	
+	<update id="updateRepExpCount" parameterType="ExpertVO">
+		UPDATE TB_EXPERT
+		  SET
+		 	  ACCUM_REP = #{accumRep,jdbcType=NUMERIC}
+		WHERE EXPERT_ID=#{expertId,jdbcType=VARCHAR}
+	</update>
+	
+	<select id="selectTotalExpForm" parameterType="PagingVO" resultType="int">
+	   	 SELECT COUNT(*)
+          FROM TB_EXP_FORM
+        WHERE applicant_id = #{detailCondition.applicantId}
+	</select>
+	
+	<select id="selectmyExpFormList" parameterType="PagingVO" resultType="ExpFormVO">
+			SELECT C.*
+		      FROM (
+		             SELECT
+                ROWNUM RNUM,
+                APPLICANT_ID,
+                EX_FORM_CONTENT,
+                EX_FORM_ASSUME,
+                EX_APPR_CODE,
+                EX_FORM_NUM,
+                B.COM_CODE_NM,
+                EX_REFUSE,
+                D.COM_CODE_NM AS REFUSE_REASON
+            FROM
+                TB_EXP_FORM A LEFT OUTER JOIN TB_COM_CODE B ON( A.EX_APPR_CODE= B.COM_CODE) 
+                              LEFT OUTER JOIN TB_COM_CODE D ON(A.EX_REFUSE= D.COM_CODE)
+		    WHERE APPLICANT_ID=#{detailCondition.applicantId}
+		                 )C 
+		    WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+	<select id="selectprodName" parameterType="String" resultType="String">
+		    select eprod_name
+      from tb_myexpert
+    where my_eprod=#{myEprod}
+	</select>
+</mapper>

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.notice.dao.BoardReplyDAO">
+	
+	<select id="selectBoardReply" resultType="BoardReplyVO" parameterType="String">
+		SELECT
+    	BO_REPLY_NUM,
+    	WRITER_ID,
+    	BOARD_NUM,
+    	BO_REPLY_CONTENT,
+    	TO_CHAR(BO_REPLY_DATE,'YYYY.MM.DD  HH24:MI') AS BO_REPLY_DATE,
+    	NVL(PARENT_BO_REPLY_NUM,BO_REPLY_NUM) AS PARENT_BO_REPLY_NUM,
+    	DEL_YN
+		FROM
+    	TB_BOARD_REPLY
+    	WHERE BOARD_NUM=#{boardNum}
+    	ORDER BY PARENT_BO_REPLY_NUM ASC,BO_REPLY_NUM ASC
+	</select>
+	
+	<insert id="insertBoReply" parameterType="BoardReplyVO">
+		<selectKey keyProperty="boReplyNum" keyColumn="BO_REPLY_NUM" order="BEFORE" resultType="String">
+			SELECT fn_create_num(to_char(SYSDATE,'YYMMDD'), 'TB_BOARD_REPLY', 'BO_REPLY_NUM', UPPER('BORE'))
+			FROM DUAL
+		</selectKey>
+		INSERT INTO TB_BOARD_REPLY (
+    	BO_REPLY_NUM,
+    	WRITER_ID,
+    	BOARD_NUM,
+    	BO_REPLY_CONTENT,
+    	BO_REPLY_DATE,
+    	PARENT_BO_REPLY_NUM,
+    	DEL_YN
+		) VALUES (
+    	#{boReplyNum},
+    	#{writerId},
+    	#{boardNum},
+    	#{boReplyContent},
+    	SYSDATE,
+    	NULL,
+    	'N'
+		)
+	</insert>
+	<insert id="insertBoReReply" parameterType="BoardReplyVO">
+		<selectKey keyProperty="boReplyNum" keyColumn="BO_REPLY_NUM" order="BEFORE" resultType="String">
+			SELECT fn_create_num(to_char(SYSDATE,'YYMMDD'), 'TB_BOARD_REPLY', 'BO_REPLY_NUM', UPPER('BORE'))
+			FROM DUAL
+		</selectKey>
+		INSERT INTO TB_BOARD_REPLY (
+    	BO_REPLY_NUM,
+    	WRITER_ID,
+    	BOARD_NUM,
+    	BO_REPLY_CONTENT,
+    	BO_REPLY_DATE,
+    	PARENT_BO_REPLY_NUM,
+    	DEL_YN
+		) VALUES (
+    	#{boReplyNum},
+    	#{writerId},
+    	#{boardNum},
+    	#{boReplyContent},
+    	SYSDATE,
+    	#{parentBoReplyNum},
+    	'N'
+		)
+	</insert>
+	<update id="updateBoReply" parameterType="BoardReplyVO">
+		UPDATE TB_BOARD_REPLY
+    	SET 
+   		BO_REPLY_CONTENT = #{boReplyContent},
+    	BO_REPLY_DATE= SYSDATE
+		WHERE
+    	BO_REPLY_NUM =#{boReplyNum}   
+	</update>
+	<update id="deleteBoReply" parameterType="String">
+		UPDATE TB_BOARD_REPLY
+    	SET 
+   		DEL_YN = 'Y'
+		WHERE
+    	BO_REPLY_NUM =#{delNum}
+	
+	</update>
+</mapper>

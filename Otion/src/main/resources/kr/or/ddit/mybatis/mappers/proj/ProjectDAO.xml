@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.proj.main.dao.ProjectDAO">
+	<resultMap type="ProjectVO" id="project" autoMapping="true">
+		<id property="pjId" column="PJ_ID" />
+		<collection property="colleagueList"
+			javaType="java.util.List" ofType="ColleagueVO" autoMapping="true" />
+	</resultMap>
+	
+	<resultMap type="ProjectVO" id="cooFormProject" autoMapping="true">
+		<id property="pjId" column="PJ_ID" />
+		<association property="cooBoard" javaType="CooBoardVO" autoMapping="true"/>		
+			
+		<collection property="cooFormList"
+			javaType="java.util.List" ofType="CooFormVO" autoMapping="true">
+			<association property="attatch" javaType="AttatchVO" autoMapping="true"/>
+		</collection>
+	</resultMap>
+	
+	<select id="selectProjectList" parameterType="String"
+		resultMap="project">
+		SELECT A.PJ_ID, A.PJ_CREATOR_ID, A.PJ_NAME, A.PJ_PNUM,
+		TO_CHAR(A.PJ_START,'YYYY-MM-DD') AS PJ_START,
+		TO_CHAR(A.PJ_END,'YYYY-MM-DD') AS PJ_END, A.PJ_CREATE_DATE,
+		A.PJ_ADMIN_ID,
+		C.COM_CODE_NM AS PJ_STATUS_CODE, B.*
+		FROM
+		TB_PROJECT A, TB_COLLEAGUE B, TB_COM_CODE C
+		WHERE
+		A.PJ_ID = B.PJ_ID
+		AND
+		A.PJ_STATUS_CODE = C.COM_CODE
+		AND
+		B.COL_RESIGN_YN = 'N'
+		AND
+		(
+		B.MEM_ID = #{memId}
+		OR
+		A.PJ_ADMIN_ID = #{memId}
+		)
+		ORDER BY A.PJ_ID
+	</select>
+	
+	<select id="selectCooFormList" parameterType="ProjectVO" resultMap="cooFormProject">
+		SELECT A.*,B.*, 
+		        C.COO_NUM, C.WRITER_ID, C.COO_TITLE, C.COO_CONTENT, C.COO_PEOPLE_NUM, C.COO_START, C.COO_END,
+		        D.ATTATCH_NUM, D.ATTATCH_ORDER, D.ATTATCH_PLACE, D.FILE_PATH, D.ORIGIN_NM, D.SAVE_NM,
+		        D.ATTATCH_TYPE, D.ATTATCH_SIZE, D.DOWN_NUMBER, D.ATTATCH_DATE, D.UPLOADER_ID,
+		        E.MEM_NAME
+		  FROM TB_PROJECT 
+		       A INNER JOIN TB_COOBOARD C
+		       ON (A.PJ_ID = C.PJ_ID)
+		       INNER JOIN TB_COOFORM B
+		       ON (B.COO_NUM = C.COO_NUM)
+		       INNER JOIN TB_ATTATCH D
+		       ON (B.COO_FORM_NUM=D.ATTATCH_PLACE)
+		       INNER JOIN TB_MEMBER E
+		       ON (B.APPLICANT_ID = E.MEM_ID)
+ 	       WHERE A.PJ_ADMIN_ID = #{pjAdminId}
+   		   AND A.PJ_ID = #{pjId}
+	</select>
+	
+	<insert id="insertProject" parameterType="ProjectVO">
+	<selectKey keyProperty="pjId" resultType="String" order="BEFORE">
+		SELECT fn_create_num(to_char(sysdate,'yymmdd'), 'TB_PROJECT', 'PJ_ID', UPPER('PROJ'))
+ 		FROM DUAL
+	</selectKey>
+		INSERT INTO 
+		TB_PROJECT
+		(
+		PJ_ID, 
+		PJ_CREATOR_ID, 
+		PJ_NAME, 
+		PJ_PNUM, 
+		PJ_START,
+		PJ_END, 
+		PJ_OBJ_TITLE,
+		PJ_OBJ_SUMMARY, 
+		PJ_CREATE_DATE,
+		PJ_ADMIN_ID, 
+		PJ_STATUS_CODE
+		)
+		VALUES(
+		#{pjId}, 
+		#{pjCreatorId}, 
+		#{pjName}, 
+		#{pjPnum}, 
+		SYSDATE, 
+		TO_DATE(#{pjEnd},'YYYY-MM-DD'), 
+		#{pjObjTitle}, 
+		#{pjObjSummary},
+		SYSDATE, 
+		#{pjCreatorId}, 
+		'PS01'
+		)
+	</insert>
+
+
+	<select id="selectProject" parameterType="String" resultType="ProjectVO">
+		SELECT PJ_ID, PJ_CREATOR_ID, SUBSTR(PJ_NAME,0,4) AS PJ_NAME, PJ_PNUM,
+		TO_CHAR(PJ_START,'YYYY-MM-DD') AS PJ_START,
+		TO_CHAR(PJ_END,'YYYY-MM-DD') AS PJ_END, PJ_CREATE_DATE,
+		PJ_ADMIN_ID
+		  FROM TB_PROJECT
+		 WHERE PJ_ID = #{pjId}
+	</select>
+</mapper>

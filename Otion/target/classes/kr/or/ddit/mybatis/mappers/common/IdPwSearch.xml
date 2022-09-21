@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.common.myIdPwSearch.dao.IdPwSearchDAO">
+<select id="getMemberId" parameterType="MemberVO" resultType="MemberVO">
+	SELECT *
+	  FROM TB_MEMBER
+	 WHERE MEM_NAME = #{memName}
+	   AND MEM_MAIL = #{memMail}
+</select>
+<select id="getMemberPass" parameterType="MemberVO" resultType="MemberVO">
+	SELECT *
+	  FROM TB_MEMBER
+	 WHERE MEM_NAME = #{memName}
+	   AND MEM_MAIL = #{memMail}
+	   AND MEM_ID = #{memId}
+</select>
+<update id="updateMemberPass" parameterType="MemberVO">
+	UPDATE TB_MEMBER
+	   SET MEM_PASS = #{newPass}
+	 WHERE MEM_ID = #{memId}
+</update>
+</mapper>

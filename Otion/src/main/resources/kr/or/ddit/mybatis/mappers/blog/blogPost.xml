@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--  [[개정이력(Modification Information)]]       -->
+<!--  수정일        수정자     수정내용               -->
+<!--  ==========   ======    ==============        -->
+<!--  2022. 8. 24.    박채록     최초작성               -->
+<!--  Copyright (c) 2022 by DDIT All right reserved -->
+<mapper namespace="kr.or.ddit.blog.dao.BlogWriteDAO">
+	<resultMap type="PostMarkVO" id="markMap" autoMapping="true">
+		<id property="postNum" column="POST_NUM"/>
+		<collection property="blogpost" ofType="MyBlogPostVO" autoMapping="true"></collection>
+	</resultMap>
+	<insert id="insertMyPost" parameterType="MyBlogPostVO">
+		INSERT INTO tb_blog_post (
+						    POST_NUM,
+						    POST_CATE_NUM,
+						    BLOGER_ID,
+						    POST_TITLE,
+						    POST_CONTENT,
+						    POST_DATE,
+						    POST_PUBLIC_YN,
+						    POST_TAG,
+						    THUMNAIL
+						) VALUES (
+						    fn_create_num(to_char(sysdate,'yymmdd'), 'TB_BLOG_POST', 'POST_NUM', UPPER('blpo'))
+						    , #{postCateNum,jdbcType=VARCHAR}
+						    , #{blogerId,jdbcType=VARCHAR}
+						    , #{postTitle,jdbcType=VARCHAR}
+						    , #{postContent,jdbcType=CLOB}
+						    , SYSDATE
+						    , #{postPublicYn,jdbcType=VARCHAR}
+						    , #{postTag,jdbcType=VARCHAR}
+						    , #{thumnail, jdbcType=VARCHAR}
+						)
+	</insert>
+	
+	<select id="selectmyMarkTotal" parameterType="PagingVO"	 resultType="int">
+		SELECT COUNT(*)
+	     FROM TB_POSTMARK
+	    WHERE MEM_ID = #{detailCondition.memId}
+	</select>
+	
+	<select id="selectmyMarkList" parameterType="PagingVO" resultMap="markMap">
+		  SELECT C.*
+            FROM (
+            SELECT 
+                   ROWNUM RNUM,
+                   A.POST_NUM,
+                   B.POST_TITLE,
+                   B.BLOGER_ID,
+                   B.POST_VIEW,
+				   B.POST_HEART
+              FROM TB_POSTMARK A LEFT OUTER JOIN TB_BLOG_POST B ON(A.POST_NUM=B.POST_NUM)
+             WHERE A.MEM_ID=#{detailCondition.memId}
+               AND B.POST_DEL_YN='N'
+        )C 
+          WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	
+	</select>
+	<select id="selectMarkYn" parameterType="PostMarkVO" resultType="PostMarkVO">
+	 SELECT    
+			POSTMARK_NUM,
+			POST_NUM,
+			MEM_ID
+	  FROM TB_POSTMARK
+	  WHERE MEM_ID=#{memId,jdbcType=VARCHAR}
+	    AND POST_NUM=#{postNum,jdbcType=VARCHAR}
+	</select>
+	
+	<insert id="insertBookMK" parameterType="kr.or.ddit.blog.vo.PostMarkVO">
+		INSERT INTO TB_POSTMARK (
+				    POSTMARK_NUM,
+				    POST_NUM,
+				    MEM_ID
+				) VALUES (
+				  fn_create_num(to_char(sysdate,'yymmdd'), 'TB_POSTMARK', 'POSTMARK_NUM', UPPER('mark'))
+				  , #{postNum,jdbcType=VARCHAR}
+				  , #{memId,jdbcType=VARCHAR}
+				)
+	</insert>
+	
+	<delete id="deleteBookMK" parameterType="PostMarkVO">
+	DELETE FROM TB_POSTMARK
+	   	  WHERE POST_NUM = #{postNum,jdbcType=VARCHAR}
+	        AND MEM_ID =#{memId,jdbcType=VARCHAR}
+	</delete>
+	
+	<update id="updatePost" parameterType="MyBlogPostVO">
+		UPDATE TB_BLOG_POST
+		   SET
+	    POST_TITLE = #{postTitle,jdbcType=VARCHAR}
+	  , POST_CONTENT = #{postContent,jdbcType=CLOB}
+	  , POST_PUBLIC_YN = #{postPublicYn,jdbcType=VARCHAR}
+	  , POST_TAG = #{postTag,jdbcType=VARCHAR}
+	  , THUMNAIL = #{thumnail, jdbcType=VARCHAR}
+	 WHERE  POST_NUM = #{postNum,jdbcType=VARCHAR}
+	</update>
+	
+	
+	<select id="selectHeartYn" parameterType="kr.or.ddit.blog.vo.BlogHeartVO" resultType="kr.or.ddit.blog.vo.BlogHeartVO">
+		 SELECT    
+				 HEART_NUM,
+				 POST_NUM,
+				 MEM_ID
+		  FROM TB_BLOG_HEART
+		  WHERE MEM_ID=#{memId,jdbcType=VARCHAR}
+		    AND POST_NUM=#{postNum,jdbcType=VARCHAR}
+	</select>
+	
+	<select id="selectTotalHeart" parameterType="String" resultType="int">
+		SELECT COUNT(*)
+		  FROM TB_BLOG_HEART
+		 WHERE POST_NUM =#{postNum,jdbcType=VARCHAR}
+	</select>
+	
+	<insert id="insertHeart" parameterType="kr.or.ddit.blog.vo.BlogHeartVO">
+      INSERT INTO TB_BLOG_HEART (
+			    HEART_NUM,
+			    POST_NUM,
+			    MEM_ID
+			) VALUES (
+			    fn_create_num(TO_CHAR(SYSDATE,'YYMMDD'), 'TB_BLOG_HEART', 'HEART_NUM', UPPER('htnu'))
+			   ,#{postNum,jdbcType=VARCHAR}
+			   , #{memId,jdbcType=VARCHAR}
+			)
+	</insert>
+	
+	<delete id="deleteHeart">
+	DELETE FROM TB_BLOG_HEART
+	      WHERE POST_NUM = #{postNum,jdbcType=VARCHAR}
+	        AND MEM_ID =#{memId,jdbcType=VARCHAR}
+	</delete>
+	
+	<update id="updateHeartNo" parameterType="String">
+		UPDATE TB_BLOG_POST
+		  SET 
+		POST_HEART =(SELECT COUNT(*)
+		        FROM TB_BLOG_HEART
+		       WHERE POST_NUM=#{postNum,jdbcType=VARCHAR})
+	   WHERE POST_NUM=#{postNum,jdbcType=VARCHAR}
+	</update>
+</mapper>

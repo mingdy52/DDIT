@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.proj.git.dao.GitDAO">
+	<select id="selectGit" parameterType="String" resultType="GitVO">
+		SELECT *
+			FROM TB_WORK_STORAGE
+		 WHERE PJ_ID = #{pjId}
+	</select>
+	
+	<insert id="insertGitStorage" parameterType="GitVO">
+	<selectKey keyColumn="WORK_STORAGE_NUM" keyProperty="workStorageNum" order="BEFORE" resultType="String">
+		SELECT fn_create_num(to_char(sysdate,'yymmdd'), 'TB_WORK_STORAGE', 'WORK_STORAGE_NUM',
+			UPPER('WKST'))
+		  FROM DUAL
+	</selectKey>
+		INSERT INTO TB_WORK_STORAGE(
+			WORK_STORAGE_NUM,
+			PJ_ID,
+			WORK_STORAGE_PATH
+		)VALUES(
+			#{workStorageNum},
+			#{pjId},
+			#{workStoragePath}
+		)
+		
+	</insert>
+</mapper>

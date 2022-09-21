@@ -1,0 +1,431 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--  [[개정이력(Modification Information)]]       -->
+<!--  수정일        수정자     수정내용               -->
+<!--  ==========   ======    ==============        -->
+<!--  2022. 8. 8.}     이아인    최초작성               -->
+<!--  Copyright (c) 2022 by DDIT All right reserved -->
+<mapper namespace="kr.or.ddit.member.mypage.dao.MypageDAO">
+	
+	<select id="selectMypage" parameterType="String" resultType="MemberVO">
+		SELECT
+		    MEM_ID,
+		    MEM_PASS,
+		    MEM_NAME,
+		    MEM_NICK,
+		    MEM_MAIL,
+		    MEM_HP
+		FROM TB_MEMBER
+		WHERE MEM_ID=#{memID}
+	</select>
+	
+	<select id="findNick" resultType="int" parameterType="String">
+		SELECT COUNT(*) 
+		FROM TB_MEMBER
+		WHERE MEM_NICK NOT IN (SELECT A.MEM_NICK 
+		                        FROM TB_MEMBER A
+		                        INNER JOIN TB_DELMEMBER B ON(A.MEM_ID = B.MEM_ID))
+		AND MEM_NICK=#{memNick}
+	</select>
+	
+	<update id="updateNick" parameterType="MemberVO">
+		UPDATE TB_MEMBER 
+		SET MEM_NICK=#{memNick}
+		WHERE MEM_ID=#{memId}
+	</update>
+	
+	<select id="selectPass" parameterType="String" resultType="MemberVO">
+		SELECT 
+		MEM_ID,
+	    MEM_PASS,
+	    MEM_NAME,
+	    MEM_NICK,
+	    MEM_MAIL,
+	    MEM_HP
+		FROM TB_MEMBER
+		WHERE MEM_ID=#{memId}
+	</select>
+	
+	<update id="updatePass" parameterType="MemberVO">
+		UPDATE TB_MEMBER 
+		SET MEM_PASS=#{newPass}
+		WHERE MEM_ID=#{memId}
+	</update>
+	
+	<insert id="deleteMember" parameterType="MemberVO">
+		INSERT INTO tb_delmember (
+    	MEM_ID,
+   	 	DEL_CODE,
+    	DEL_DATE
+		)
+		VALUES
+		(
+	    #{memId},
+	    #{delReason},
+	    SYSDATE
+	    )
+		
+	</insert>
+	
+	<sql id="exPayDateTotal">
+		<trim prefix="AND">
+			<if test="startDate neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(startDate)">
+				 A.EPAY_DATE between TO_DATE(#{startDate},'YYYY-MM-DD') and TO_DATE(#{endDate},'YYYY-MM-DD') 
+			</if>
+		</trim>
+	
+	</sql>
+	
+	<sql id="exPaySearchFrag">
+		<trim prefix="AND">
+			<if test="startDate neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(startDate)">
+				 B.EPAY_DATE between TO_DATE(#{startDate},'YYYY-MM-DD') and TO_DATE(#{endDate},'YYYY-MM-DD') 
+			</if>
+		</trim>
+	
+	</sql>
+	
+	<select id="expertTotalRecord" resultType="int" parameterType="PagingVO">
+	  	SELECT COUNT(*)
+		FROM TB_EPROD_PAYMENT A INNER JOIN TB_MYEXPERT B ON(A.MY_EPROD = B.MY_EPROD)
+		WHERE B.BUYER_ID = #{detailCondition.buyerId}
+		<include refid="exPayDateTotal" />
+	</select>
+	
+	<select id="selectExpertPay" parameterType="PagingVO" resultType="ExpertPaymentVO">
+		  SELECT B.*
+      	  FROM (SELECT ROWNUM RNUM, A.*
+                   FROM(SELECT A.BUYER_ID 
+                   		 , REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR(A.EPROD_PRICE)), '(\d{3})','\1,')), '^,','') AS AMOUNT
+                         , A.EPROD_NAME
+	                      , B.EPAY_NUM 
+	                      , B.MY_EPROD 
+	                      ,TO_CHAR(B.EPAY_DATE ,'YYYY.MM.DD  HH24:MI') AS EPAY_DATE 
+	                      , B.EPAY_METHOD_CODE 
+                          , DECODE(B.EPAY_YN, 'Y','결제완료','N','결제취소') AS EPAY_YN
+                          , C.COM_CODE_NM AS ECOM_NM 
+	                     FROM TB_MYEXPERT A
+	                     INNER JOIN TB_EPROD_PAYMENT B ON(A.MY_EPROD = B.MY_EPROD)
+	                     INNER JOIN TB_COM_CODE C ON(C.COM_CODE = B.EPAY_METHOD_CODE)
+	                     WHERE BUYER_ID = #{detailCondition.buyerId}
+	                     <include refid="exPaySearchFrag"/>
+	                     ORDER BY B.EPAY_DATE  DESC
+	                     
+                       ) A    
+              ) B
+     	 WHERE RNUM BETWEEN #{startRow} AND #{endRow}    
+	</select>
+	
+	
+	<sql id="coopPaySearchFrag">
+		<trim prefix="AND">
+			<if test="startDate neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(startDate)">
+				 B.WPAY_DATE between TO_DATE(#{startDate},'YYYY-MM-DD') and TO_DATE(#{endDate},'YYYY-MM-DD') 
+			</if>
+		</trim>
+	
+	</sql>	
+	<select id="coopTotalRecord" resultType="int" parameterType="PagingVO">
+		SELECT COUNT(*)
+		FROM TB_PROJECT A INNER JOIN TB_WORK_PAYMENT B
+		ON(A.PJ_ID = B.PJ_ID)
+		WHERE A.PJ_CREATOR_ID=#{detailCondition.pjCreatorId}
+		<include refid="coopPaySearchFrag"/>
+	</select>
+	
+	<select id="selectCoopPay" parameterType="PagingVO" resultType="WorkPaymentVO">
+		SELECT B.*
+		FROM(SELECT ROWNUM RNUM, A.*
+        		FROM (SELECT 
+	                 A.PJ_CREATOR_ID
+	                ,A.PJ_NAME
+	                ,A.PJ_ID
+	                ,B.WPAY_NUM
+	                ,TO_CHAR(B.WPAY_DATE,'YYYY.MM.DD  HH24:MI') AS WPAY_DATE
+	                ,REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR(B.WPAY_AMOUNT)), '(\d{3})','\1,')), '^,','') AS WPAY_AMOUNT
+	                ,TO_CHAR(B.WPAY_END,'YYYY.MM.DD') AS WPAY_END
+	                ,DECODE(B.WPAY_YN, 'Y','결제완료','N','결제취소') AS WPAY_YN
+	                ,C.CPROD_NAME
+	                ,D.COM_CODE_NM AS WCOM_NM
+	                FROM TB_PROJECT A
+	                INNER JOIN TB_WORK_PAYMENT B ON(A.PJ_ID=B.PJ_ID)
+	                INNER JOIN TB_COO_PROD C ON(B.CPROD_NUM=C.CPROD_NUM)
+	                INNER JOIN TB_COM_CODE D ON(B.WPAY_METHOD_CODE=D.COM_CODE )
+	                WHERE A.PJ_CREATOR_ID=#{detailCondition.pjCreatorId}
+	                <include refid="coopPaySearchFrag"/>
+	                ORDER BY B.WPAY_DATE  DESC
+        			)A
+    		)B
+    	WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+	
+	<sql id="exRefDateTotal">
+		<trim prefix="AND">
+			<if test="startDate neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(startDate)">
+				 A.REFUND_DATE between TO_DATE(#{startDate},'YYYY-MM-DD') and TO_DATE(#{endDate},'YYYY-MM-DD') 
+			</if>
+		</trim>
+	
+	</sql>
+	
+	<sql id="exRefSearchFrag">
+		<trim prefix="AND">
+			<if test="startDate neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(startDate)">
+				 C.REFUND_DATE between TO_DATE(#{startDate},'YYYY-MM-DD') and TO_DATE(#{endDate},'YYYY-MM-DD') 
+			</if>
+		</trim>
+	
+	</sql>
+	
+	
+	<select id="expRefTotalRecord" resultType="int" parameterType="PagingVO">
+		SELECT COUNT(*)
+		FROM TB_EPROD_REFUND A 
+		INNER JOIN TB_EPROD_PAYMENT B ON(A.EPAY_NUM = B.EPAY_NUM)
+		INNER JOIN TB_MYEXPERT C ON(B.MY_EPROD = C.MY_EPROD)
+		WHERE C.BUYER_ID = #{detailCondition.buyerId}
+		<include refid="exRefDateTotal"/>
+	</select>
+	
+	<select id="selectExpRef" resultType="ExpertRefundVO" parameterType="PagingVO">
+		SELECT B.*
+		FROM (SELECT ROWNUM RNUM, A.*
+				        FROM(SELECT
+                                A.EPROD_NAME 
+                                ,REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR(A.EPROD_PRICE )), '(\d{3})','\1,')), '^,','') AS EPROD_PRICE
+                                ,C.REFUND_NUM 
+                                ,C.EPAY_NUM 
+                                ,TO_CHAR(C.REFUND_DATE ,'YYYY.MM.DD  HH24:MI') AS REFUND_DATE 
+                                ,D.COM_CODE_NM AS ECOM_NM
+                                ,E.COM_CODE_NM 
+		                    FROM TB_MYEXPERT A 
+		                    INNER JOIN TB_EPROD_PAYMENT B ON(B.MY_EPROD = A.MY_EPROD)
+		                    INNER JOIN TB_EPROD_REFUND C ON(C.EPAY_NUM = B.EPAY_NUM)
+		                    INNER JOIN TB_COM_CODE D ON(D.COM_CODE=C.REFUND_REASON_CODE )
+		                    INNER JOIN TB_COM_CODE E ON(B.EPAY_METHOD_CODE=E.COM_CODE)
+		                    WHERE A.BUYER_ID = #{detailCondition.buyerId}
+		                    <include refid="exRefSearchFrag"/>
+		                    ORDER BY C.REFUND_DATE  DESC
+		                    ) A    
+		        ) B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+	
+	<sql id="coopRefDateTotal">
+		<trim prefix="AND">
+			<if test="startDate neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(startDate)">
+				 C.WORK_REF_DATE between TO_DATE(#{startDate},'YYYY-MM-DD') and TO_DATE(#{endDate},'YYYY-MM-DD') 
+			</if>
+		</trim>
+	
+	</sql>
+	
+	<sql id="coopRefSearchFrag">
+		<trim prefix="AND">
+			<if test="startDate neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(startDate)">
+				 D.WORK_REF_DATE  between TO_DATE(#{startDate},'YYYY-MM-DD') and TO_DATE(#{endDate},'YYYY-MM-DD') 
+			</if>
+		</trim>
+	
+	</sql>
+	<select id="coopRefTotalRecord" resultType="int" parameterType="PagingVO">
+		SELECT COUNT(*)
+    	FROM  TB_PROJECT A 
+    	INNER JOIN TB_WORK_PAYMENT B ON(A.PJ_ID=B.PJ_ID)
+    	INNER JOIN TB_WORK_REFUND C ON(B.WPAY_NUM=C.WPAY_NUM)
+		WHERE A.PJ_CREATOR_ID = #{detailCondition.pjCreatorId}
+		<include refid="coopRefDateTotal"/>
+	</select>
+	
+	
+	<select id="selectCoopRef" resultType="WorkRefundVO" parameterType="PagingVO">
+		SELECT B.*
+		FROM (SELECT ROWNUM RNUM, A.*
+				        FROM(SELECT
+				        		REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR( B.WPAY_AMOUNT)), '(\d{3})','\1,')), '^,','') AS WPAY_AMOUNT
+                                ,C.CPROD_NAME 
+                                ,D.WPAY_NUM AS 
+                                , TO_CHAR(D.WORK_REF_DATE ,'YYYY.MM.DD  HH24:MI') AS WORK_REF_DATE 
+                                ,E.COM_CODE_NM AS WCOM_NM
+                                ,F.COM_CODE_NM 
+                                FROM 
+                                TB_PROJECT A
+                                INNER JOIN TB_WORK_PAYMENT B ON(A.PJ_ID=B.PJ_ID)
+                                INNER JOIN TB_COO_PROD C ON(B.CPROD_NUM=C.CPROD_NUM)
+                                INNER JOIN TB_WORK_REFUND D ON(D.WPAY_NUM =B.WPAY_NUM )
+                                INNER JOIN TB_COM_CODE E ON(D.WORK_REF_CODE=E.COM_CODE)
+                                INNER JOIN TB_COM_CODE F ON(B.WPAY_METHOD_CODE=F.COM_CODE)
+                                WHERE A.PJ_CREATOR_ID = #{detailCondition.pjCreatorId}
+                                <include refid="coopRefSearchFrag"/>
+                                ORDER BY D.WORK_REF_DATE DESC
+                        )A
+                 ) B
+        WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+	<select id="freeBoardTotalRecord" resultType="int" parameterType="PagingVO">
+		SELECT COUNT(*)
+		FROM TB_FREEBOARD
+		WHERE WRITER_ID=#{detailCondition.writerId}
+		AND DEL_YN='N' 
+	</select>
+	<select id="selectFreeBoard" resultType="FreeBoardVO" parameterType="PagingVO">
+	SELECT B.*
+    FROM(SELECT ROWNUM RNUM, A.*
+         FROM(SELECT
+                FREE_NUM
+                ,WRITER_ID
+                 ,CASE WHEN LENGTH(FREE_TITLE) <![CDATA[<=]]> '14' THEN FREE_TITLE
+                 WHEN LENGTH(FREE_TITLE) <![CDATA[>]]> '14' THEN SUBSTR(FREE_TITLE, 0,14)||' ...'
+                 END AS FREE_TITLE
+                ,FREE_CONTENT
+                ,TO_CHAR(FREE_DATE,'YYYY.MM.DD  HH24:MI') AS FREE_DATE
+                ,VIEW_NUM
+                FROM
+                TB_FREEBOARD
+                WHERE WRITER_ID=#{detailCondition.writerId}
+                AND DEL_YN='N'
+                ORDER BY FREE_DATE DESC
+            )A
+     	)B
+      WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select> 
+	<select id="coopBoardTotalRecord" resultType="int" parameterType="PagingVO">
+		SELECT COUNT(*)
+		FROM TB_COOBOARD
+		WHERE WRITER_ID=#{detailCondition.writerId}
+		AND DEL_YN='N' 
+	</select>
+	<select id="selectCoopBoard" resultType="CooBoardVO" parameterType="PagingVO">
+		SELECT B.*
+   		 FROM(SELECT ROWNUM RNUM, A.*
+         		FROM(SELECT
+		                COO_NUM
+		                ,WRITER_ID
+		                ,CASE WHEN LENGTH(COO_TITLE) <![CDATA[<=]]> '14' THEN COO_TITLE
+                        WHEN LENGTH(COO_TITLE) <![CDATA[>]]> '14' THEN SUBSTR(COO_TITLE, 0,14)||' ...'
+                        END AS COO_TITLE
+		                ,COO_CONTENT
+		                ,VIEW_NUM
+		                ,TO_CHAR(COO_DATE,'YYYY.MM.DD  HH24:MI') AS COO_DATE
+                	FROM
+                	TB_COOBOARD
+                	WHERE WRITER_ID=#{detailCondition.writerId}
+                	AND DEL_YN='N'
+                	ORDER BY COO_DATE DESC
+            )A
+     )B
+    WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+	<select id="replyTotalRecord" resultType="int" parameterType="PagingVO">
+		SELECT COUNT(*)
+		FROM TB_BOARD_REPLY
+		WHERE WRITER_ID=#{detailCondition.writerId}
+		AND DEL_YN='N'
+	</select>
+	
+	<select id="selectBoardReply" resultType="BoardReplyVO" parameterType="PagingVO">
+		SELECT B.*
+   		 FROM(SELECT ROWNUM RNUM, A.*
+         		FROM(SELECT
+                        BO_REPLY_NUM
+                        ,WRITER_ID
+                        ,BOARD_NUM
+                        ,CASE WHEN LENGTH(BO_REPLY_CONTENT) <![CDATA[<=]]> '14' THEN BO_REPLY_CONTENT
+                        WHEN LENGTH(BO_REPLY_CONTENT) <![CDATA[>]]> '14' THEN SUBSTR(BO_REPLY_CONTENT, 0,14)||' ...'
+                        END AS BO_REPLY_CONTENT
+                        ,TO_CHAR(BO_REPLY_DATE,'YYYY.MM.DD  HH24:MI') AS BO_REPLY_DATE
+                        ,PARENT_BO_REPLY_NUM
+                        ,DEL_YN
+                    FROM
+                        TB_BOARD_REPLY
+                    WHERE WRITER_ID=#{detailCondition.writerId}
+                    AND  DEL_YN='N'
+                    ORDER BY BO_REPLY_DATE DESC
+            )A
+     )B
+     WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+		
+	
+	</select>
+	<select id="qnaTotalRecord" resultType="int" parameterType="PagingVO">
+		SELECT COUNT(*)
+		FROM TB_QNA
+		WHERE WRITER_ID=#{detailCondition.writerId}
+		AND DEL_YN='N' 
+	</select>
+	<select id="selectQnaBoard" resultType="QNABoardVO" parameterType="PagingVO">
+		SELECT B.*
+   		 FROM(SELECT ROWNUM RNUM, A.*
+         		FROM(SELECT
+                    QNA_NUM
+                    ,WRITER_ID
+                     ,CASE WHEN LENGTH(QNA_TITLE) <![CDATA[<=]]> '14' THEN QNA_TITLE
+                     WHEN LENGTH(QNA_TITLE) <![CDATA[>]]> '14' THEN SUBSTR(QNA_TITLE, 0,14)||' ...'
+                     END AS QNA_TITLE
+                    ,QNA_CONTENT
+                    ,VIEW_NUM
+                    ,ANSWER_ID
+                    , TO_CHAR(QNA_DATE,'YYYY.MM.DD  HH24:MI') AS QNA_DATE
+                    FROM
+                    TB_QNA
+                    WHERE WRITER_ID=#{detailCondition.writerId}
+                    AND DEL_YN='N'
+                    ORDER BY QNA_DATE DESC
+            )A
+     )B
+     WHERE RNUM BETWEEN #{startRow} AND #{endRow}  	
+	</select>
+	<update id="freeDelete" parameterType="FreeBoardVO">
+		UPDATE TB_FREEBOARD
+	    SET DEL_YN = 'Y'
+		WHERE 1 = 1
+		AND WRITER_ID = #{writerId} 
+		AND FREE_NUM IN
+		 <foreach collection="freeDelNum" item="item" index="index" separator="," open="(" close=")">
+		 	#{item}
+		 </foreach>
+	 </update>
+<!-- 			<foreach collection="freeDelNum" item="item" separator=";" open="DECLARE BEGIN" close="; END;"> -->
+<!-- 			UPDATE TB_FREEBOARD -->
+<!-- 			SET DEL_YN='Y' -->
+<!-- 			<where> -->
+<!-- 			FREE_NUM=#{item}			 -->
+<!-- 			</where> -->
+<!-- 			AND WRITER_ID=#{writerId}	 -->
+<!-- 			</foreach> -->
+	
+	<update id="coopDelete" parameterType="CooBoardVO">
+		UPDATE TB_COOBOARD
+	    SET DEL_YN = 'Y'
+		WHERE 1 = 1
+		AND WRITER_ID = #{writerId} 
+		AND COO_NUM IN
+		 <foreach collection="cooDelNum" item="item" index="index" separator="," open="(" close=")">
+		 	#{item}
+		 </foreach>
+	
+	</update>
+
+	<update id="repDelete" parameterType="CooBoardVO">
+		UPDATE TB_BOARD_REPLY
+	    SET DEL_YN = 'Y'
+		WHERE 1 = 1
+		AND WRITER_ID = #{writerId} 
+		AND BO_REPLY_NUM IN
+		 <foreach collection="boReplyDelNum" item="item" index="index" separator="," open="(" close=")">
+		 	#{item}
+		 </foreach>
+	</update>
+	
+	<update id="qnaDelete" parameterType="QNABoardVO">
+		UPDATE TB_QNA
+	    SET DEL_YN = 'Y'
+		WHERE 1 = 1
+		AND WRITER_ID = #{writerId} 
+		AND QNA_NUM IN
+		 <foreach collection="qnaDelNum" item="item" index="index" separator="," open="(" close=")">
+		 	#{item}
+		 </foreach>
+	
+	</update>
+</mapper>

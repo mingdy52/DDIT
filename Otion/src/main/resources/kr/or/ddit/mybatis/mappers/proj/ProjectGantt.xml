@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.proj.gantt.dao.ProjectGanttDAO">
+	<select id="selectGanttList" parameterType="WorkVO"
+		resultType="WorkVO">
+		SELECT WORK_NUM , PJ_ID, WORK_REQ, WORK_TITLE,
+				WORK_CONTENT,
+				WORK_STATUS_CODE,
+				TO_CHAR(WORK_START,'YYYY-MM-DD') AS
+				WORK_START,TO_CHAR(WORK_END,'YYYY-MM-DD')AS WORK_END,
+				WORK_PRIORITY,PARENT_WORK_NUM
+			FROM TB_WORK
+			WHERE PJ_ID = #{pjId}
+		<include refid="search" />
+	</select>
+
+	<select id="selectChildGanttList" parameterType="WorkVO"
+		resultType="WorkVO">
+		SELECT WORK_NUM , PJ_ID, WORK_REQ, WORK_TITLE,
+		WORK_CONTENT, WORK_STATUS_CODE,
+		TO_CHAR(WORK_START,'YYYY-MM-DD') AS
+		WORK_START,TO_CHAR(WORK_END,'YYYY-MM-DD')AS WORK_END,
+		WORK_PRIORITY,PARENT_WORK_NUM
+		FROM TB_WORK
+		WHERE PARENT_WORK_NUM =
+		#{workNum}
+	</select>
+
+	<sql id="search">
+			<if
+				test="@org.apache.commons.lang3.StringUtils@isNotBlank(workTitle)">
+				AND INSTR(WORK_TITLE,#{workTitle}) > 0
+			</if>
+			<if
+				test="@org.apache.commons.lang3.StringUtils@isNotBlank(workPriority)">
+				AND INSTR(WORK_PRIORITY,#{workPriority}) > 0
+			</if>
+			<if
+				test="@org.apache.commons.lang3.StringUtils@isNotBlank(workStatusCode)">
+				AND INSTR(WORK_STATUS_CODE,#{workStatusCode}) > 0
+			</if>
+			<if
+				test="@org.apache.commons.lang3.StringUtils@isNotBlank(workStart)">
+				 <![CDATA[
+				AND WORK_START >= TO_DATE(#{workStart}, 'YYYY-MM-DD')
+  				 ]]>
+			</if>
+			<if
+				test="@org.apache.commons.lang3.StringUtils@isNotBlank(workEnd)">
+				 <![CDATA[
+				AND WORK_END <= TO_DATE(#{workEnd}, 'YYYY-MM-DD')
+  		 		]]>
+			</if>
+	</sql>
+	
+	<select id="selectGanttView" parameterType="WorkVO" resultType="WorkVO">
+		SELECT WORK_NUM , PJ_ID, WORK_REQ, WORK_TITLE,
+		WORK_CONTENT, WORK_STATUS_CODE,
+		TO_CHAR(WORK_START,'YYYY-MM-DD') AS
+		WORK_START,TO_CHAR(WORK_END,'YYYY-MM-DD')AS WORK_END,
+		WORK_PRIORITY,PARENT_WORK_NUM
+		FROM TB_WORK
+		WHERE WORK_NUM =
+		#{workNum}
+	</select>
+	
+	<select id="selctParentGantt" parameterType="WorkVO" resultType="WorkVO">
+		SELECT WORK_NUM , PJ_ID, WORK_REQ, WORK_TITLE,
+		WORK_CONTENT, WORK_STATUS_CODE,
+		TO_CHAR(WORK_START,'YYYY-MM-DD') AS
+		WORK_START,TO_CHAR(WORK_END,'YYYY-MM-DD')AS WORK_END,
+		WORK_PRIORITY,PARENT_WORK_NUM
+		FROM TB_WORK
+		WHERE WORK_NUM =
+		#{parentWorkNum}
+	</select>
+</mapper>

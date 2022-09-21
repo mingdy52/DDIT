@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.proj.chat.dao.ProjectChatDAO">
+	<select id="selectChatList" parameterType="ColleagueVO" resultType="ProjectChatVO">
+		SELECT CR_NUM, COL_NUM, CR_CREATE_DATE,CR_NAME,CR_UPDATE,CR_IMAGE as CR_IMG ,CR_COLLEAGUE
+		  FROM TB_CHAT
+		 WHERE (
+		 COL_NUM = #{colNum}
+		OR INSTR(CR_COLLEAGUE,#{colNum}) > 0		 
+		 )
+		 	<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(crName)">
+		 	AND INSTR(CR_NAME,#{crName}) > 0
+		 	</if>
+		 	
+	</select>
+	
+	<select id="selectChat" parameterType="String" resultType="ProjectChatVO">
+		SELECT CR_NUM, COL_NUM, CR_CREATE_DATE,CR_NAME,CR_UPDATE,CR_IMAGE as CR_IMG ,CR_COLLEAGUE
+		  FROM TB_CHAT
+		 WHERE CR_NUM = #{crNum}
+	</select>
+	
+	<insert id="insertChat" parameterType="ProjectChatVO">
+	<selectKey keyProperty="crNum" keyColumn="CR_NUM" resultType="String" order="BEFORE">
+		SELECT fn_create_num(to_char(sysdate,'yymmdd'), 'TB_CHAT', 'CR_NUM',
+			UPPER('CHAT'))
+		  FROM DUAL
+	</selectKey>
+		INSERT INTO TB_CHAT(
+			CR_NUM,
+			COL_NUM,
+			CR_CREATE_DATE,
+			CR_NAME,
+			CR_IMAGE,
+			CR_COLLEAGUE
+		)
+		VALUES(
+			#{crNum},
+			#{colNum},
+			SYSDATE,
+			#{crName},
+			#{crImg},
+			#{crColleague}
+		)
+		
+	</insert>
+	
+	<resultMap type="ProjectChatVO" id="chatroom" autoMapping="true">
+		<id property="crNum" column="CR_NUM"/>
+		<collection property="chatList" ofType="ProjectChatRoomVO" autoMapping="true" />
+	</resultMap>
+	
+	<select id="selectChatRoom" parameterType="ProjectChatVO" resultMap="chatroom">
+		SELECT A.CR_NUM, A.COL_NUM, A.CR_CREATE_DATE, A.CR_NAME, A.CR_UPDATE, A.CR_IMAGE AS CR_IMG ,A.CR_COLLEAGUE,
+				 B.CR_CONTENT, TO_CHAR(B.CR_DATE, 'YYYY-MM-DD HH24:MM') AS CR_DATE, B.CR_CONTENT_NUM, B.ATTATCH_NUM, B.MEM_ID 
+		  FROM TB_CHAT A, TB_CHATROOM B
+		 WHERE A.CR_NUM = B.CR_NUM
+		   AND A.CR_NUM = #{crNum}
+		 ORDER BY B.CR_CONTENT_NUM
+	</select>
+	
+	<select id="countChatting" parameterType="ProjectChatRoomVO" resultType="int">
+		SELECT COUNT(*) + 1
+		  FROM TB_CHATROOM
+		 WHERE CR_NUM = #{crNum}
+	</select>
+	
+	<insert id="insertChatting" parameterType="ProjectChatRoomVO">
+		INSERT INTO TB_CHATROOM(
+			CR_NUM,
+			CR_CONTENT_NUM,
+			CR_DATE,
+			CR_CONTENT,
+			ATTATCH_NUM,
+			MEM_ID
+		)
+		VALUES(
+			#{crNum},
+			#{crContentNum},
+			SYSDATE,
+			#{crContent},
+			#{attatchNum, jdbcType=VARCHAR},
+			#{memId}
+		)
+	</insert>
+</mapper>

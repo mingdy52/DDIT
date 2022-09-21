@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.proj.calendar.dao.CalendarDAO">
+	<select id="selectCalendarList" parameterType="ColleagueVO"
+		resultType="CalendarVO">
+		SELECT B.WORK_CAL_NUM, B.COL_NUM, B.WORK_CAL_TITLE,
+		TO_CHAR(B.WORK_CAL_START,'YYYY-MM-DD HH24:MI:SS') AS WORK_CAL_START,
+		TO_CHAR(B.WORK_CAL_END,'YYYY-MM-DD HH24:MI:SS') AS WORK_CAL_END,
+		B.WORK_CAL_CONTENT, B.WORK_CAL_CLASS, B.WORK_CAL_COLOR
+		FROM TB_COLLEAGUE A, TB_WORK_CALENDAR B
+		WHERE A.COL_NUM = B.COL_NUM
+		AND A.MEM_ID= #{memId}
+		AND A.PJ_ID=#{pjId}
+		<include refid="calSearch" />
+	</select>
+
+	<sql id="calSearch">
+			<if test="searchVO neq null">
+				<if
+					test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.workCalTitle)">
+					AND INSTR(WORK_CAL_TITLE,#{searchVO.workCalTitle}) > 0
+				</if>
+				<if
+					test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.workCalClass)">
+					AND INSTR(WORK_CAL_CLASS,#{searchVO.workCalClass}) > 0
+				</if>
+				<if
+					test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.workCalStart)">
+					 <![CDATA[
+			  		AND WORK_CAL_START >= TO_DATE(#{searchVO.workCalStart},'YYYY-MM-DD')
+			  		 ]]>
+				</if>
+				<if
+					test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.workCalEnd)">
+					 <![CDATA[
+			  		AND WORK_CAL_END <= TO_DATE(#{searchVO.workCalEnd},'YYYY-MM-DD')
+			  		 ]]>
+				</if>
+			</if>
+	</sql>
+
+	<select id="selectTotalRecord" parameterType="PagingVO"
+		resultType="int">
+		SELECT COUNT(*)
+		FROM TB_WORK_CALENDAR
+		WHERE COL_NUM = #{colleague.colNum}
+		<include refid="search" />
+	</select>
+
+	<select id="pagingCalendarList" parameterType="PagingVO"
+		resultType="CalendarVO">
+		SELECT *
+		FROM (
+		SELECT ROWNUM RNUM, B.WORK_CAL_NUM, B.COL_NUM,
+		B.WORK_CAL_TITLE, TO_CHAR(B.WORK_CAL_START,'YYYY-MM-DD') AS
+		WORK_CAL_START,
+		TO_CHAR(B.WORK_CAL_END,'YYYY-MM-DD') AS WORK_CAL_END, B.WORK_CAL_CONTENT, B.WORK_CAL_CLASS,
+		B.WORK_CAL_COLOR
+		FROM TB_COLLEAGUE A, TB_WORK_CALENDAR B
+		WHERE A.COL_NUM = B.COL_NUM
+		AND A.COL_NUM = #{colleague.colNum}
+		<include refid="search" />
+		)
+		 <![CDATA[
+  		WHERE RNUM >= #{startRow} AND RNUM <=#{endRow}
+  		 ]]>
+	</select>
+
+	<sql id="search">
+		<trim prefix="AND">
+			<if test="simpleCondition neq null">
+				<if
+					test="@org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+					INSTR(WORK_CAL_TITLE,#{simpleCondition.searchWord}) > 0
+				</if>
+			</if>
+		</trim>
+	</sql>
+
+	<insert id="insertCalendar" parameterType="CalendarVO">
+		<selectKey keyProperty="workCalNum" keyColumn="WORK_CAL_NUM"
+			order="BEFORE" resultType="String">
+			SELECT
+			fn_create_num(to_char(sysdate,'yymmdd'), 'TB_WORK_CALENDAR',
+			'WORK_CAL_NUM', UPPER('WCAL'))
+			FROM DUAL
+		</selectKey>
+		INSERT INTO TB_WORK_CALENDAR
+		(
+		WORK_CAL_NUM,
+		COL_NUM,
+		WORK_CAL_TITLE,
+		WORK_CAL_START,
+		WORK_CAL_END,
+		WORK_CAL_CONTENT,
+		WORK_CAL_CLASS,
+		WORK_CAL_COLOR
+		)
+		VALUES(
+		#{workCalNum},
+		#{colNum},
+		#{workCalTitle},
+		TO_DATE(#{workCalStart},'YYYY-MM-DD HH24:MI'),
+		TO_DATE(#{workCalEnd},'YYYY-MM-DD HH24:MI'),
+		#{workCalContent},
+		#{workCalClass},
+		#{workCalColor}
+		)
+	</insert>
+
+	<update id="updateCalendar" parameterType="CalendarVO">
+		UPDATE
+		TB_WORK_CALENDAR
+		SET WORK_CAL_TITLE = #{workCalTitle},
+		WORK_CAL_START = TO_DATE(#{workCalStart},'YYYY-MM-DD HH24:MI:SS'),
+		WORK_CAL_END = TO_DATE(#{workCalEnd},'YYYY-MM-DD HH24:MI:SS'),
+		WORK_CAL_CONTENT = #{workCalContent},
+		WORK_CAL_CLASS = #{workCalClass},
+		WORK_CAL_COLOR = #{workCalColor}
+		WHERE WORK_CAL_NUM = #{workCalNum}
+	</update>
+
+	<delete id="deleteCalendar" parameterType="String">
+		DELETE FROM
+		TB_WORK_CALENDAR
+		WHERE WORK_CAL_NUM = #{workCalNum}
+	</delete>
+
+	<select id="selectCalendarView" parameterType="CalendarVO"
+		resultType="CalendarVO">
+		SELECT WORK_CAL_NUM, COL_NUM,
+				WORK_CAL_TITLE, TO_CHAR(WORK_CAL_START,'YYYY-MM-DD HH24:MI:SS') AS
+				WORK_CAL_START,
+				TO_CHAR(WORK_CAL_END,'YYYY-MM-DD HH24:MI:SS') AS WORK_CAL_END, WORK_CAL_CONTENT, WORK_CAL_CLASS,
+				WORK_CAL_COLOR
+		FROM TB_WORK_CALENDAR
+		WHERE COL_NUM = #{colNum}
+		AND WORK_CAL_NUM = #{workCalNum}
+	</select>
+</mapper>

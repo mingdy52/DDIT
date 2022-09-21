@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--  [[개정이력(Modification Information)]]       -->
+<!--  수정일        수정자     수정내용               -->
+<!--  ==========   ======    ==============        -->
+<!--  2022. 8. 5.}     이아인     최초작성               -->
+<!--  Copyright (c) 2022 by DDIT All right reserved -->
+
+<mapper namespace="kr.or.ddit.blog.dao.MyBlogDAO">
+	<select id="selectCate" resultType="kr.or.ddit.blog.vo.BlogCateVO" parameterType="String">
+		SELECT
+    	A.CATE_NUM,
+    	A.BLOG_ID,
+    	A.CATE_NM,
+    	A.CATE_DEL_YN,
+    	TO_CHAR(A.CATE_DATE,'YYYY-MM-DD') AS CATE_DATE,
+    	B.BLOGER_ID
+		FROM  TB_BLOG_CATE A,TB_BLOG B
+		WHERE A.BLOG_ID=B.BLOG_ID
+		AND B.BLOGER_ID=#{memId}
+		AND CATE_DEL_YN='N'
+		ORDER BY CATE_DATE DESC
+	</select>
+	
+	<select id="selectMemId" resultType="int" parameterType="String">
+		SELECT COUNT(*)
+		FROM TB_BLOG A
+		WHERE BLOGER_ID=#{memId}
+		AND NOT EXISTS (SELECT 1 FROM TB_DELMEMBER B WHERE A.BLOGER_ID=B.MEM_ID)
+	</select>
+	
+	<sql id="searchFrag">
+	 	WHERE A.BLOGER_ID = #{memId}
+	 	AND POST_DEL_YN ='N'
+       	<trim prefix="AND" prefixOverrides="AND">
+        	<if test="pagingVO.simpleCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(pagingVO.simpleCondition.searchWord)">
+	        	(
+		         	INSTR(A.POST_TITLE, #{pagingVO.simpleCondition.searchWord}) > 0
+		        	OR 
+		        	INSTR(A.POST_CONTENT, #{pagingVO.simpleCondition.searchWord}) > 0
+	        	)
+        	</if>
+        	<if test="owner neq null and 'notOwner'.equals(owner)">
+	        	AND A.POST_PUBLIC_YN = 'Y'
+	        	
+        	</if>
+        	<if test="cateNm neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(cateNm)">
+	        	AND B.CATE_NM = #{cateNm}
+	        	AND B.CATE_DEL_YN = 'N'
+        	</if>
+       	</trim>
+	</sql>
+	
+	<select id="selectTotalPostRecord" resultType="int" parameterType="map">
+		SELECT COUNT(*)
+        FROM TB_BLOG_POST A 
+        INNER JOIN TB_BLOG_CATE B ON(A.POST_CATE_NUM = B.CATE_NUM)
+        <include refid="searchFrag" />
+	</select>
+	<select id="selectPostList" resultType="MyBlogPostVO" parameterType="map">
+		SELECT B.*
+		FROM (SELECT ROWNUM RNUM, A.*
+		        FROM(SELECT 
+		        		A.POST_NUM
+						, A.POST_CATE_NUM
+						, A.BLOGER_ID
+						, A.POST_TITLE
+						, A.POST_CONTENT
+						, A.POST_VIEW
+						, A.POST_HEART
+						, A.POST_BLIND_YN
+						, TO_CHAR(A.POST_DATE,'YYYY.mm.dd  HH24:MI') AS POST_DATE
+						, A.POST_PUBLIC_YN
+						, A.POST_TAG
+						, A.POST_DEL_YN
+						, A.THUMNAIL
+		        		, B.CATE_NUM
+		        		, B.CATE_NM
+                     FROM TB_BLOG_POST A 
+                     INNER JOIN TB_BLOG_CATE B ON(A.POST_CATE_NUM = B.CATE_NUM)
+                     <include refid="searchFrag" />
+                     ORDER BY POST_NUM DESC
+		            ) A    
+		        ) B
+		WHERE RNUM BETWEEN #{pagingVO.startRow} AND #{pagingVO.endRow}
+	</select>
+	
+	<resultMap type="MyBlogPostVO" id="postMap" autoMapping="true">
+		<id property="postNum" column="POST_NUM"/>
+		<collection property="attatchList" ofType="AttatchVO" autoMapping="true"/>
+	</resultMap>
+	
+	<select id="selectPost" resultMap="postMap" parameterType="map">
+		SELECT 
+			A.POST_NUM
+			, A.POST_CATE_NUM
+			, A.BLOGER_ID
+			, A.POST_TITLE
+			, A.POST_CONTENT
+			, A.POST_VIEW
+			, A.POST_HEART
+			, A.POST_BLIND_YN
+			, TO_CHAR(A.POST_DATE,'YYYY.mm.dd  HH24:MI') AS POST_DATE
+			, A.POST_PUBLIC_YN
+			, A.POST_TAG
+			, A.POST_DEL_YN
+			, B.CATE_NUM
+			, B.CATE_NM
+			, C.ATTATCH_NUM
+			, C.ATTATCH_ORDER
+			, C.FILE_PATH
+			, C.ORIGIN_NM
+			, C.SAVE_NM
+			, C.ATTATCH_TYPE
+			, C.ATTATCH_SIZE
+			, C.ATTATCH_DATE
+        FROM TB_BLOG_POST A 
+        INNER JOIN TB_BLOG_CATE B ON(A.POST_CATE_NUM = B.CATE_NUM)
+        LEFT OUTER JOIN TB_ATTATCH C ON(A.POST_NUM = C.ATTATCH_PLACE)
+		WHERE POST_NUM = #{postNum}
+		AND BLOGER_ID = #{memId}
+
+	</select>
+	
+	<update id="privatePost" parameterType="String">
+		UPDATE TB_BLOG_POST
+		SET POST_PUBLIC_YN = #{lock}
+		WHERE POST_NUM = #{postNum}
+	</update>
+	
+	<update id="delPost" parameterType="String">
+		UPDATE TB_BLOG_POST
+		SET POST_DEL_YN = 'Y'
+		WHERE POST_NUM = #{postNum}
+	</update>
+	
+	<update id="incrementHit" parameterType="String">
+		UPDATE TB_BLOG_POST
+		SET POST_VIEW = POST_VIEW + 1
+		WHERE POST_NUM = #{post_num}
+	</update>
+	
+<!-- 	todoList -->
+	<select id="selectBlogId" parameterType="String" resultType="String">
+		SELECT BLOG_ID
+		FROM TB_BLOG
+		WHERE BLOGER_ID = #{memId}
+	</select>
+	
+	<select id="dailyCheckAllList" parameterType="map" resultType="int">
+		SELECT 
+			COUNT(*)
+		FROM TB_CHECKLIST A INNER JOIN TB_BLOG B ON(A.BLOG_ID = B.BLOG_ID)
+		WHERE B.BLOGER_ID = #{memId}
+		AND TO_CHAR(A.CHECK_DATE, 'YYYY-MM-DD') = #{date}
+	</select>
+	
+	<select id="dailyCheckYList" parameterType="map" resultType="int">
+        SELECT 
+			COUNT(*)
+		FROM TB_CHECKLIST A INNER JOIN TB_BLOG B ON(A.BLOG_ID = B.BLOG_ID)
+		WHERE B.BLOGER_ID = #{memId}
+		AND TO_CHAR(A.CHECK_DATE, 'YYYY-MM-DD') = #{date}
+        AND CHECK_YN = 'Y'
+	</select>
+	
+	<select id="selectTodoList" resultType="TodoVO" parameterType="map">
+		SELECT 
+			A.CHECK_NUM
+			, A.BLOG_ID
+			, A.CHECK_CONTENT
+			, A.CHECK_YN
+			, TO_CHAR(A.CHECK_DATE,'YYYY.MM.DD') AS CHECK_DATE
+		FROM TB_CHECKLIST A INNER JOIN TB_BLOG B ON(A.BLOG_ID = B.BLOG_ID)
+		WHERE B.BLOGER_ID = #{memId}
+		<if test='checkYn neq "All" and @org.apache.commons.lang3.StringUtils@isNotBlank(checkYn)'>
+			AND A.CHECK_YN = #{checkYn}
+        </if>
+		AND TO_CHAR(A.CHECK_DATE, 'YYYY-MM-DD') = #{date}
+		ORDER BY A.CHECK_DATE
+	</select>
+	
+	<select id="selectTotalShareRecord" resultType="int" parameterType="map">
+        SELECT 
+		    COUNT(*)
+        FROM TB_BLOG_POST A 
+        INNER JOIN TB_POST_SHARE C ON (A.POST_NUM = C.POST_NUM)
+        WHERE C.RECEIVER_ID = #{memId}
+        AND POST_DEL_YN ='N'
+	</select>
+	<select id="selectShareList" resultType="MyBlogPostVO" parameterType="map">
+		SELECT B.*
+		FROM (SELECT ROWNUM RNUM, A.*
+		        FROM(
+		        
+					SELECT 
+		        		A.POST_NUM
+						, A.POST_CATE_NUM
+						, A.BLOGER_ID
+						, A.POST_TITLE
+						, SUBSTR(A.POST_CONTENT,1,70)||'...' AS POST_CONTENT
+						, A.POST_VIEW
+						, A.POST_HEART
+						, A.POST_BLIND_YN
+						, TO_CHAR(A.POST_DATE,'YYYY.mm.dd  HH24:MI') AS POST_DATE
+						, A.POST_PUBLIC_YN
+						, A.POST_TAG
+						, A.POST_DEL_YN
+                     FROM TB_BLOG_POST A 
+                     INNER JOIN TB_POST_SHARE C ON (A.POST_NUM = C.POST_NUM)
+                     WHERE C.RECEIVER_ID = #{memId}
+                     AND POST_DEL_YN ='N'
+		        
+		            ) A    
+		        ) B
+		WHERE RNUM BETWEEN #{pagingVO.startRow} AND #{pagingVO.endRow}
+	</select>
+	
+	<insert id="insertTodo" parameterType="TodoVO">
+		INSERT INTO tb_checklist (
+		    CHECK_NUM,
+		    BLOG_ID,
+		    CHECK_CONTENT
+		    <if test="checkDate neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(checkDate)">
+	        	, CHECK_DATE
+        	</if>
+		) VALUES (
+		    FN_CREATE_NUM(TO_CHAR(SYSDATE,'YYMMDD'), 'TB_CHECKLIST', 'CHECK_NUM', UPPER('CHLI'))
+		    , #{blogId,jdbcType=VARCHAR}
+		    , #{checkContent,jdbcType=VARCHAR}
+		    <if test="checkDate neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(checkDate)">
+	        	, #{checkDate,jdbcType=VARCHAR}
+        	</if>
+		)
+	</insert>
+	
+	<update id="updateTodo" parameterType="TodoVO">
+		UPDATE TB_CHECKLIST
+		SET CHECK_CONTENT = #{checkContent}
+		WHERE CHECK_NUM = #{checkNum}
+	</update>
+	
+	<update id="updateYn" parameterType="TodoVO">
+		UPDATE TB_CHECKLIST
+		SET CHECK_YN = #{checkYn}
+		WHERE CHECK_NUM = #{checkNum}
+	</update>
+	
+	<delete id="delTodo" parameterType="String">
+		DELETE FROM TB_CHECKLIST
+		WHERE CHECK_NUM = #{checkNum}
+	</delete>
+	
+<!-- 	공유 -->
+	<insert id="insertShare" parameterType="kr.or.ddit.blog.vo.ShareVO">
+	<selectKey keyProperty="shareNum" order="BEFORE" resultType="String">
+		SELECT  FN_CREATE_NUM(TO_CHAR(SYSDATE,'YYMMDD'), 'TB_POST_SHARE', 'SHARE_NUM', UPPER('POSH')) AS SHARE_NUM
+		FROM DUAL
+	</selectKey>
+		INSERT INTO TB_POST_SHARE (
+		    SHARE_NUM,
+		    POST_NUM,
+		    RECEIVER_ID
+		) VALUES (
+		    #{shareNum},
+		    #{postNum},
+		    #{receiverId}
+		)
+	</insert>
+	
+	<select id="selectTotalShareMemberList" resultType="int" parameterType="String">
+		SELECT
+		    COUNT(*)
+		FROM
+		    TB_POST_SHARE
+		WHERE POST_NUM = #{postNum}
+	</select>
+	<select id="selectShareMemberList" resultType="kr.or.ddit.blog.vo.ShareVO" parameterType="map">
+		
+		SELECT B.*
+		FROM (SELECT ROWNUM RNUM, A.*
+		        FROM(
+		        
+					SELECT
+					    A.SHARE_NUM
+					    , A.POST_NUM
+					    , A.RECEIVER_ID
+					    , B.MEM_NICK
+					FROM
+					    TB_POST_SHARE A INNER JOIN TB_MEMBER B ON(A.RECEIVER_ID = B.MEM_ID)
+					WHERE POST_NUM = #{postNum}
+		        
+		            ) A    
+		        ) B
+		WHERE RNUM BETWEEN #{pagingVO.startRow} AND #{pagingVO.endRow}
+	</select>
+	
+	<select id="checkShareYn" parameterType="map" resultType="int">
+		SELECT COUNT(RECEIVER_ID)
+		FROM TB_POST_SHARE
+		WHERE POST_NUM = #{postNum}
+		AND RECEIVER_ID = #{memId}
+	</select>
+	
+	<delete id="delShare" parameterType="map">
+		DELETE
+		FROM TB_POST_SHARE
+		WHERE POST_NUM = #{postNum}
+		AND RECEIVER_ID = #{receiverId}
+	</delete>
+</mapper>

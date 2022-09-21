@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.proj.workmark.dao.WorkMarkDAO">
+	<insert id="insertWorkMark" parameterType="WorkMarkVO">
+		<selectKey keyProperty="wmNum" keyColumn="WM_NUM" resultType="String" order="BEFORE">
+		SELECT fn_create_num(to_char(sysdate,'yymmdd'), 'TB_WORK_MARK', 'WM_NUM',
+			UPPER('WOMK'))
+		  FROM DUAL
+		</selectKey>
+		INSERT INTO TB_WORK_MARK(
+			WM_NUM,
+			COL_NUM,
+			WORK_NUM
+		)VALUES(
+			#{wmNum},
+			#{colNum},
+			#{workNum}
+		)
+	</insert>
+	<delete id="deleteWorkMark" parameterType="WorkMarkVO">
+		DELETE FROM TB_WORK_MARK
+		 WHERE COL_NUM = #{colNum}
+		   AND WORK_NUM = #{workNum}
+	</delete>
+	
+	<delete id="deleteWorkNumMark" parameterType="WorkVO">
+		DELETE FROM TB_WORK_MARK
+		 WHERE WORK_NUM = #{workNum}
+	</delete>
+	
+	<select id="selectWorkMark" parameterType="WorkMarkVO" resultType="WorkMarkVO">
+		SELECT WM_NUM, COL_NUM, WORK_NUM
+		  FROM TB_WORK_MARK
+		 WHERE COL_NUM = #{colNum}
+		   AND WORK_NUM = #{workNum}
+	</select>
+	
+	<resultMap type="WorkMarkVO" id="workMark" autoMapping="true">
+		<id property="wmNum" column="WM_NUM"/>
+		<association property="work" javaType="WorkVO" autoMapping="true" />
+	</resultMap>
+	
+	<select id="selectWorkMarkList" parameterType="WorkMarkVO" resultMap="workMark">
+		SELECT A.WM_NUM, A.COL_NUM, B.WORK_NUM , B.PJ_ID, B.WORK_REQ, B.WORK_TITLE,
+				B.WORK_CONTENT, B.WORK_STATUS_CODE,
+				TO_CHAR(B.WORK_START,'YYYY-MM-DD') AS WORK_START,TO_CHAR(B.WORK_END,'YYYY-MM-DD')AS WORK_END,
+				B.WORK_PRIORITY,B.PARENT_WORK_NUM
+		  FROM TB_WORK_MARK A, TB_WORK B
+		 WHERE A.WORK_NUM = B.WORK_NUM
+		   AND A.COL_NUM = #{colNum}
+		   <include refid="myWorkSearch" />
+	</select>
+	<sql id="myWorkSearch">
+		<if test="work neq null">
+			<if
+				test="@org.apache.commons.lang3.StringUtils@isNotBlank(work.workTitle)">
+				AND INSTR(WORK_TITLE,#{work.workTitle}) > 0
+			</if>
+			<if
+				test="@org.apache.commons.lang3.StringUtils@isNotBlank(work.workPriority)">
+				AND INSTR(WORK_PRIORITY,#{work.workPriority}) > 0
+			</if>
+			<if
+				test="@org.apache.commons.lang3.StringUtils@isNotBlank(work.workStatusCode)">
+				AND INSTR(WORK_STATUS_CODE,#{work.workStatusCode}) > 0
+			</if>
+			<if
+				test="@org.apache.commons.lang3.StringUtils@isNotBlank(work.workStart)">
+				 <![CDATA[
+				AND WORK_START >= TO_DATE(#{work.workStart}, 'YYYY-MM-DD')
+  		 		]]>
+			</if>
+			<if
+				test="@org.apache.commons.lang3.StringUtils@isNotBlank(work.workEnd)">
+				 <![CDATA[
+				AND WORK_END <= TO_DATE(#{work.workEnd}, 'YYYY-MM-DD')
+  				 ]]>
+			</if>
+		</if>
+	</sql>
+</mapper>

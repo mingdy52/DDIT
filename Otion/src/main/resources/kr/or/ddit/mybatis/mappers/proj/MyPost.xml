@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.proj.post.dao.ProjectMyPostDAO">
+<!-- 	<resultMap type="MyPostVO" id="postVO" autoMapping="true"> -->
+<!-- 		<association property="colleagueVO" javaType="ColleagueVO" autoMapping="true">		 -->
+<!-- 			<id property="colNum" column="COL_NUM"/> -->
+<!-- 		</association> -->
+<!-- 		<association property="memberVO" javaType="MemberVO" autoMapping="true"> -->
+<!-- 			<id property="memId" column="MEM_ID"/> -->
+<!-- 		</association> -->
+<!-- 		<collection property="calendarList" ofType="CalendarVO" autoMapping="true"> -->
+<!-- 			<id property="workCalNum" column="WORK_CAL_NUM"/> -->
+<!-- 		</collection> -->
+<!-- 		<collection property="messageList" ofType="MessageVO" autoMapping="true"> -->
+<!-- 			<id property="msgNum" column="MSG_NUM"/> -->
+<!-- 		</collection>			 -->
+<!-- 		<collection property="messageReceiveList" ofType="MessageReceiverVO" autoMapping="true"> -->
+<!-- 			<id property="msgNum" column="MSG_NUM"/> -->
+<!-- 		</collection> -->
+<!-- 		<collection property="replyList" ofType="ReplyVO" autoMapping="true"> -->
+<!-- 			<id property="woReplyNum" column="WO_REPLY_NUM"/> -->
+<!-- 		</collection> -->
+<!-- 		<collection property="workList" ofType="WorkVO" autoMapping="true"> -->
+<!-- 			<id property="workNum" column="WORK_NUM"/> -->
+<!-- 		</collection> -->
+<!-- 	</resultMap> -->
+
+<!-- 	<select id="selectMyPostList" parameterType="ColleagueVO" resultMap="postVO"> -->
+<!-- 		SELECT A.*, C.*, D.*, E.*, F.*, G.* -->
+<!--   FROM TB_COLLEAGUE A LEFT OUTER JOIN TB_MEMBER B -->
+<!--         ON(A.MEM_ID = B.MEM_ID) -->
+<!--         LEFT OUTER JOIN TB_WORK_CALENDAR C -->
+<!--         ON (A.COL_NUM= C.COL_NUM)   -->
+<!--         LEFT OUTER JOIN TB_MESSAGE D -->
+<!--         ON(A.MEM_ID = D.MSG_WRITER_ID) -->
+<!--         LEFT OUTER JOIN TB_MSG_RECEIVER E -->
+<!--         ON(A.MEM_ID = E.RECEIVER_NUM) -->
+<!--         LEFT OUTER JOIN TB_WORK_REPLY F -->
+<!--         ON(A.MEM_ID = F.WRITER_NUM) -->
+<!--         LEFT OUTER JOIN TB_WORK_ASSIGNMENT H -->
+<!--         ON(A.COL_NUM = H.COL_NUM) -->
+<!--         LEFT OUTER JOIN TB_WORK G -->
+<!--         ON(H.WORK_NUM = G.WORK_NUM) -->
+<!--    WHERE A.MEM_ID = #{memId} -->
+<!--      AND A.PJ_ID = #{pjId} -->
+<!-- 	</select> -->
+</mapper>

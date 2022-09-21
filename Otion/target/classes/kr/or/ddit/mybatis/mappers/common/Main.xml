@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.common.dao.MainDAO">
+	<select id="expertList" resultType="ExpertVO">
+		 SELECT
+			    EXPERT_ID,
+			    PRESENTATION,
+			    ASSUME,
+			    ACCUM_REP,
+			    EX_LINK,
+			    EX_TAG,
+			    PROFILE_IMG,
+			    EX_DEL
+		  FROM
+			    TB_EXPERT
+	      WHERE EX_DEL='N'
+	</select>
+	
+	<select id="eprodList" resultType="EProdVO">
+	 SELECT
+		    EPROD_NUM,
+		    EXPERT_ID,
+		    EPROD_NAME,
+		    EPROD_TAG,
+		    EPROD_PRICE,
+		    EPROD_DATE,
+		    ACCUM_NUM,
+		    EPROD_LANG_CODE,
+		    EPROD_SUMMARY,
+		    EPROD_DEL
+	  FROM TB_EXP_PROD
+	  WHERE EPROD_DEL='N'
+	</select>
+	
+	<select id="blogTrendList" resultType="kr.or.ddit.blog.vo.MyBlogPostVO">
+		SELECT
+			    POST_NUM,
+			    POST_CATE_NUM,
+			    BLOGER_ID,
+			    (CASE
+                    WHEN LENGTH(POST_TITLE) > 20 
+                    THEN SUBSTR(POST_TITLE,1,20)||'...' 
+                    ELSE POST_TITLE
+                    END) AS POST_TITLE,
+			    POST_CONTENT,
+			    POST_VIEW,
+			    POST_HEART,
+			    POST_BLIND_YN,
+			    TO_CHAR(POST_DATE, 'YYYY-MM-DD') ,
+			    POST_PUBLIC_YN,
+			    POST_TAG,
+			    POST_DEL_YN,
+			    THUMNAIL
+			FROM TB_BLOG_POST
+		   WHERE POST_DEL_YN='N'
+		   ORDER BY POST_HEART DESC
+	</select>
+	
+	<select id="noticeList" resultType="NoticeVO">
+		SELECT
+		    NOTI_NUM,
+		    WRITER_ID,
+		    NOTI_RANK,
+		    NOTI_TITLE,
+		    NOTI_CONTENT,
+		    VIEW_NUM,
+		    PJ_ID,
+		    NOTI_CLASS_CODE,
+		    NOTI_DEL_YN,
+		    NOTI_DATE
+		FROM TB_NOTICE
+	   WHERE NOTI_DEL_YN='N'
+	</select>
+	
+	<select id="cooBoardList" resultType="CooBoardVO">
+	SELECT
+		    COO_NUM,
+		    WRITER_ID,
+		    COO_TITLE,
+		    COO_CONTENT,
+		    COO_PEOPLE_NUM,
+		    TO_CHAR(COO_START, 'YYYY-MM-DD') AS COO_START,
+		    TO_CHAR(COO_END, 'YYYY-MM-DD') AS COO_END,
+		    COO_DONE_YN,
+		    REP_NUM,
+		    VIEW_NUM,
+		    BLIND_YN,
+		    DEL_YN,
+		    PJ_ID,
+		    TO_CHAR(COO_DATE, 'MMDD') AS COO_DATE
+	  FROM TB_COOBOARD
+	 WHERE DEL_YN='N'
+	 ORDER BY COO_DATE
+	</select>
+</mapper>

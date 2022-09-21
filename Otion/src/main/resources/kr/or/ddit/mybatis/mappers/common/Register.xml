@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.common.register.dao.RegisterDAO">
+	<select id="selectMemberList" parameterType="String"
+		resultType="RegisterVO">
+		SELECT *
+		FROM TB_MEMBER
+		WHERE MEM_ID = #{memId}
+	</select>
+	
+	<select id="selectMemberNickList" parameterType="String" resultType="RegisterVO">
+		SELECT *
+		FROM TB_MEMBER
+		WHERE MEM_NICK = #{memNick}
+	</select>
+	
+	<insert id="insertMember">
+		INSERT INTO TB_MEMBER(
+		MEM_ID,
+		MEM_PASS,
+		MEM_NAME,
+		MEM_NICK,
+		MEM_MAIL,
+		MEM_HP
+		)
+		VALUES(
+		#{memId},
+		#{memPass},
+		#{memName},
+		#{memNick},
+		#{memMail},
+		#{memHp}
+		)
+	</insert>
+
+	<insert id="createBlogCategory" parameterType="BlogCateVO">
+		<selectKey keyProperty="cateNum" keyColumn="CATE_NUM"
+			order="BEFORE" resultType="String">
+			SELECT fn_create_num(to_char(sysdate,'yymmdd'), 'TB_BLOG_CATE', 'CATE_NUM',
+			UPPER('BCAT'))
+			FROM DUAL
+		</selectKey>
+		INSERT INTO tb_blog_cate (
+			CATE_NUM,
+			BLOG_ID,
+			CATE_NM,
+			CATE_DEL_YN,
+			CATE_DATE
+		) VALUES (
+			#{cateNum},
+			#{blogId},
+			'시작하기',
+			'N',
+			SYSDATE
+		)
+	</insert>
+
+	<insert id="createBlog" parameterType="CreateBlogVO">
+		<selectKey keyProperty="blogId" keyColumn="BLOG_ID"
+			order="BEFORE" resultType="String">
+			SELECT fn_create_num(to_char(sysdate,'yymmdd'), 'TB_BLOG', 'BLOG_ID',
+			UPPER('BLOG'))
+			FROM DUAL
+		</selectKey>
+		INSERT INTO
+		TB_BLOG
+		(
+		BLOG_ID,
+		BLOGER_ID
+		)
+		VALUES(
+		#{blogId},
+		#{blogerId}
+		)
+	</insert>
+</mapper>
