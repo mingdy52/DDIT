@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+    <meta charset="UTF-8">
+
+<script>
+    function MyArray(){
+        this.length = 0;
+    }
+
+    MyArray.prototype.push = function(p_value){ // push 메소드 추가
+        this[this.length] = p_value;
+        // 이거 json 의 배열식 접근법. 속성명이 숫자로 시작하거나 변수명을 지정할 수 없을 때 사용
+
+        this.length++; // 카운트도 직접 컨트롤
+    }
+
+    var v_arr1 = new MyArray();
+    v_arr1.push("고혜인");
+    v_arr1.push("신창규");
+    v_arr1.push("조채원");
+    console.log(v_arr1);
+</script>

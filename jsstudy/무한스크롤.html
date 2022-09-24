@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <title>Page Title</title>
+</head>
+<body>
+    <div id="id_disp">
+        
+        <!--이렇게 밖에 안쓰니 파일 잘 가지고 있길 바람. 특히 모바일-->
+        
+<script>
+    for(var i=1; i<20; i++){
+        document.write("<h1>고혜인 최고의 프로그래며당" + i + "</h1>")
+    }
+</script>
+    </div>
+<script>
+
+    window.onload = function(){
+        setTimeout(function(){
+            window.scrollTo(0,0) // 크롬에서 약간의 시간이 필요
+            // 구글은 안 고쳐주고, 크롬엔진이 너무 빨라서 생긴 문제라고 자랑질~
+        }, 100)
+    }
+
+    function f_scroll(){
+        console.log("스크롤 하고 계숑?");
+        console.log("올라간 값: ", document.documentElement.scrollTop); // 스크롤이 위로 얼마나 올라갔나
+        console.log("보이는 화면높이: ", document.documentElement.clientHeight); // 보이는 문서 높이 -- 화면창 크기를 조절하면 달라짐
+        console.log("실제 문서 높이: ", document.documentElement.scrollHeight); // 문서 전체 높이
+        console.log("=======================================");
+
+        var v_top = document.documentElement.scrollTop;
+        var v_clientHeight = document.documentElement.clientHeight;
+        var v_scrollHeight = document.documentElement.scrollHeight;
+        var v_disp = document.querySelector("#id_disp")
+
+        // 일반적으로 바닥치기 전에 데이타를 추가함(적정한 튜닝값이 필요)
+        if(v_top+v_clientHeight >= (v_scrollHeight -50)){
+            console.log("바닥이 가까워져 와요!");
+            // 보통 여기서 ajax 를 이용해서 데이타 추가
+            for(var i=1; i<=15; i++){
+                v_disp.innerHTML += "<h1>조채원 PM 짱" +i+ "</h1>"
+            }
+        }
+    }
+
+    window.addEventListener("scroll", f_scroll);
+</script>    
+</body>
+</html>

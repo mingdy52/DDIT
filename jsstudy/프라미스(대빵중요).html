@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<meta charset='utf-8'>
+<script>
+    // 자바스크립트에서는 jQuery 이후 callback(콜백) 함수가 많이 사용되고 있고,
+    // 비동기 처리에도 callback 함수가 많이 사용되었는데
+    // (callback 자체는 동기/비동기와 관련 없음 - 많은 사람들이 오해)
+    //hell of callback (콜백지옥이란 불명예스런 용어탄생)
+    //그래서 탄생한 게 Promise(약속), 쪼메 칭찬 받았지만 , 역시 가독성이 난해하당
+    //async, await가 최종적으로 탄생(많이 칭찬받고 있지만)
+    // 자주 써보지 않으면 잘 못 씀.
+
+    /* 요 아래 소스 이해 안 되시는 분은 꼭 이해하세용
+    function aaa(p_callback){
+        return p_callback();
+        // return "서현"; // 함수 끝에는 이것이 생략되어 있음. 함수 종료
+    };
+
+    // aaa(function bbb(){ // aaa 를 불렀는데, 그 안에서 bbb가 불림
+    //     alert("난 지금 콜백안에서 불리고 있디용");
+    // });
+
+    function bbb(){
+        alert("난 지금 콜백안에서 불리고 있디용2");
+        return "서현짱"; // 함수 끝에는 이것이 생략되어 있음. 함수 종료
+    }
+
+    // aaa(bbb); // bbb 에 괄호 붙이면 bbb 함수가 먼저 실행해버리기 때문에 안돼.
+
+    alert(aaa(bbb)); // ? 최종 alert 에 뜨는 값은? - undefined
+    // 모든 함수에는 return 이 생략되어 있는데 aaa 함수에서 return 값으로 넘겨주는 값이 없기 때문임.
+    // 함수는 return 이 제일 중요해!
+
+    */
+
+   let myFirstPromise = new Promise(function(resolve, reject) {
+    // resolve("안넝");
+    // reject("약속을 어겼어용");
+   });
+
+   myFirstPromise.then(function(p_rslt) {
+    alert("성공: " + p_rslt);
+   });
+
+   myFirstPromise.catch(function(p_rslt) {
+    alert("실패: " + p_rslt);
+   });
+</script>

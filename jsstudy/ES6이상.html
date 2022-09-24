@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <title>Page Title</title>
+</head>
+<body>
+<!--
+    자바스크립트 버젼의 전환점은 ES6(2015년말 발표)
+    현재까지의 주력은 ES5 버전 (마이크로소프트 IE11 버전의 지원문제)
+    let, const, template string, promise(비동기), async(비동기관련), await(비동기관련), class(-> function)
+-->
+
+<script>
+    // let vs var , const
+    // var 는 function 키워드에 의해 scope(영역) 가 구분
+    // let 은 {} 에 의해서 scopes 가 구분(다른 언어들에서 사용되는 변수 영역과 같음)
+
+    var v_smk = {name:"심민경"};
+    v_smk = {name:"이반석"}; // 이렇게 되면 {name:"심민경"} 객체는 찾을 방법이 없음. 
+    // 자바에선 이런걸 가비지 컬렉터가 언제인진 모르지만 알아서 처리해줌
+    // c 언어에선 이런걸 메모리가 낭비된다고해서, Memory Leak 라고 부름
+    // 클라이언트 사이드 자바스크립트에선 변수가 조금 낭비되도 문제 삼지 않는데
+    // 페이지가 넘어가면 자동으로 다 클리어되기 때문
+
+    const c_ghi = "고혜인";
+    // c_ghi = "토끼눈"; // 당근 에렁
+    const c_ghiObj = {
+        name:"고혜인",
+        friend:"조채원"
+    }
+
+    c_ghiObj.friend = ["조채원", "김유진"];
+    console.log(c_ghiObj); // 상수가 객체일 때, 속성은 마음대로 바꿀 수 있음.
+
+    c_ghiObj = {
+        name:"서효림",
+        alias:"오늘 1등 출근"
+    } // 이건 실패
+
+    function f_letvar(){
+        for(var i = 1; i <= 10; i++){
+        }
+        alert("var: " + i); // 이거슨 11
+
+        for(let j = 1; j <= 10; j++){
+        }
+        alert("let: " + j); // 이거슨 에렁
+    }
+
+    f_letvar(); // 함수 콜
+</script>
+</body>
+</html>

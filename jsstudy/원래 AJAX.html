@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <input type="button" value="누르셍용" id="id_btn">
+
+<script>
+    var v_btn = document.querySelector("#id_btn");
+    /*
+    v_btn.onclick = function(){
+        alert("구분해야 한다~!1111111111");
+    }
+
+    // 위에 걸 덮밥
+    v_btn.onclick = function(){
+        alert("구분해야 한다~!2222222222");
+    }
+
+   
+    v_btn.addEventListener("click", function(){
+        alert("얘는 어떨까요~!!11111")
+    })
+   // 덮어쓰지 않음.
+    v_btn.addEventListener("click", function(){
+        alert("얘는 어떨까요~!!22222")
+    })
+
+    
+    */
+
+    v_btn.addEventListener("click", function(){
+        /*
+        var v_ajax = new XMLHttpRequest(); // 통신객체
+        // v_ajax.open("메소드", "URL", "비동기여부" -- true 권장); 동기로 바뀌면 순차적으로.
+        v_ajax.open("get", "dummy.txt", true); // 할일지정
+        v_ajax.onreadystatechange = function(){ // 통신객체에 변화가 생길 때마다
+            // 우리가 관심가지는 건 끝났을때만 관심
+            if(v_ajax.readyState == 4 && v_ajax.status == 200){
+                alert(v_ajax.responseText);
+            }
+        }
+        v_ajax.send(); // 해라~!
+        */
+
+        // 네임스페이스용 빈 객체
+        
+        // 일단은 이해가 중요, 활용은 많이 써 봐야 손에 익음.
+        var $={}; // 변수에 쓸 수 있는 특수 문자 _와 $
+        $.ajax = function(p_set){
+            var v_ajax = new XMLHttpRequest(); // 통신객체
+            // v_ajax.open("메소드", "URL", "비동기여부" -- true 권장); 동기로 바뀌면 순차적으로.
+            v_ajax.open(p_set.method, p_set.url, true); // 할일지정
+            v_ajax.onreadystatechange = function(){ // 통신객체에 변화가 생길 때마다
+                // 우리가 관심가지는 건 끝났을때만 관심
+                if(v_ajax.readyState == 4 && v_ajax.status == 200){
+                    if(p_set.dataType == "json"){
+                        p_set.success(JSON.parse(v_ajax.responseText));
+                    } else {
+                        p_set.success(v_ajax.responseText);
+                    }
+                }
+            }
+            v_ajax.send(); // 해라~!
+            
+        }
+        
+        v_btn.addEventListener("click", function(){
+            $.ajax({
+                method:"get",
+                url:"dummy.txt",
+                dataType:"json",
+                success:function(p_rslt){
+                    // alert("이렇게 일반화에 성공 : " + p_rslt);
+                    console.log(p_rslt);
+                }
+            });
+        });
+    });
+
+    // 원래 AJAX
+    alert("아침엔 모두 졸려용");
+
+</script>
+</body>
+</html>

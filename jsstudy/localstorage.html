@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <title>Page Title</title>
+</head>
+<body>
+
+<script>
+    // local storage, 서버 사이드가 아닌 클라이언트사이드(브라우저)의 저장공간
+    // sessionStorage 와 사용법이 정확히 일치, sessionStorage 는 접속해 있는 동안만 저장
+    // 페이지가 이동하거나 나가버리면 자동삭제, localStorage 는 강제로 지우지 않는 한
+    // 계속 저장되어 있음
+
+    /* localStorage 는 문자열만 저장이 가능, 객체를 저장하면 안됨(엉뚱한 값) */
+
+    // 객체지향 데이타베이스 MongoDB 흉내 내깅
+    function f_ranSU(){
+        return Math.ceil(Math.random() * 45) // 1~45 랜덤 정수 발생
+    }
+    var v_datas = [];
+    for(var i = 1; i <= 10; i++){
+        var v_data = {};
+        v_data.name = "메롱" + i;
+        v_data.age = i;
+        v_data.lotto = [f_ranSU(), f_ranSU(), f_ranSU()];
+        v_datas.push(v_data);
+    }
+
+    localStorage.setItem("mydata", JSON.stringify(v_datas));
+
+    // var v_objGHI = {
+    //     name: "고혜인",
+    //     alias: "막내처럼보임"
+    // }
+    // // alert(v_objGHI);
+    // localStorage.setItem("ghi", JSON.stringify(v_objGHI));
+    // var v_retObj = JSON.parse(localStorage.getItem("ghi"));
+    // alert(v_retObj.alias); // ?
+
+
+    // localStorage.setItem("반석", "항상1등"); // key, value
+    // localStorage.setItem("반석", "반석역에 살아용"); // 같은 key 값을 주면 key 값이 업데이트 된다.
+    // localStorage.ghi = "고혜인";
+    // alert(localStorage.getItem("반석"));
+    // localStorage.removeItem("반석");
+    // alert(localStorage.key(0));
+    // alert(localStorage.length);
+    // localStorage.clear(); // 모두 다 지우깅
+
+</script>
+</body>
+</html>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+    <meta charset="UTF-8">
+
+<script>
+//자바 스크립트에서는 function 키워드를 java의 class 처럼 사용할 수 있당
+// class :  사용자 정의 데이터타입이다
+
+    function MyArray(){ // 배열 데이터타입, 
+        this.length = 0; // length 속성 추가
+        this.log = function(){ // 요렇게 쓰면 메모리가 낭비됨
+            alert("난 메소드얌");
+        }
+    }
+    // 같은 class 에서 생성된 객체들이 메소드를 공유하기 위해 prototype 이란 키워드 사용(명시적)
+    // 자바는 이와같은 일을 JVM 이 알아서 해줌(암묵적)
+    MyArray.prototype.log = function(){
+        alert("난 메소드얌 22")
+    }
+
+    var v_arr1 = new MyArray();
+    console.log(v_arr1);
+    var v_arr2 = new MyArray();
+    v_arr2.length = 2;
+    console.log(v_arr2);
+
+    //this 에 대한 고찰
+    console.log(this); // ? window
+/*
+    변수 선언은 실제 window 객체의 속성추가, 
+    함수선언은 window 객체의 메소드를 추가하는 행동
+    스크립트는 처음부터 객체지향적 프로그램
+*/  
+    var v_merong = "이것은 사실 속성값";
+    // alert(window.v_merong);
+
+    function f_method(p_arg){
+        alert(p_arg)
+    }
+
+    window.f_method("ㅁㅔ롱");
+/*
+    function f_test(){
+        console.log(this);
+    }
+
+    var v_hsf = {name:"홍승조"};
+    v_hsf.mymethod = f_test;
+
+    v_hsf.mymethod();
+*/
+
+    function f_test(p_arg, parg2){
+        alert(parg2)
+        console.log("call로 세팅 : ", p_arg, this);
+    }
+    // call, apply, bind -> function 객체의 메소드로 this 값을 강제로 setting 가능
+
+    var v_ayoung = { name:"아영", alias:"좋아영"}
+
+    //f_test.call(v_ayoung, "요게1", "요게2");
+    f_test.apply(v_ayoung, ["요게3", "요게4"]); // 매개변수는 대괄호로
+
+
+</script>

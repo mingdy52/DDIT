@@ -1,0 +1,211 @@
+<%--
+* [[개정이력(Modification Information)]]
+* 수정일                 수정자      수정내용
+* ----------  ---------  -----------------
+* 2022. 8. 5.      작성자명      최초작성
+* Copyright (c) 2022 by DDIT All right reserved
+ --%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+
+<h3>신고 조회</h3>
+
+<div class="card-body">
+	<!-- Nav tabs -->
+	<ul class="nav nav-tabs nav-tabs-custom nav-justified" role="tablist">
+		<li class="nav-item"><a class="nav-link active"
+			data-bs-toggle="tab" href="#member" role="tab" aria-selected="true"
+			id="getAllList"> <span class="d-block d-sm-none"> <i
+					class="fas fa-home"></i>
+			</span> <span class="d-none d-sm-block">회원</span>
+		</a></li>
+		<li class="nav-item"><a class="nav-link" data-bs-toggle="tab"
+			href="#cooBoard" role="tab" aria-selected="false" id="getExpList">
+				<span class="d-block d-sm-none"> <i class="far fa-user"></i>
+			</span> <span class="d-none d-sm-block" onClick="getExpList()">협업 게시판</span>
+		</a></li>
+		<li class="nav-item"><a class="nav-link" data-bs-toggle="tab"
+			href="#freeBoard" role="tab" id="getProjList"> <span
+				class="d-block d-sm-none"> <i class="far fa-envelope"></i>
+			</span> <span class="d-none d-sm-block" onClick="getProjList()">자유
+					게시판</span>
+		</a></li>
+	</ul>
+
+	<!-- Tab panes -->
+	<div class="tab-content p-3 text-muted">
+		<div class="tab-pane active" id="member" role="tabpanel">
+			<table class="table table-bordered">
+				<thead>
+					<th>순번</th>
+					<th>회원아이디</th>
+					<th>회원이름</th>
+					<th>회원닉네임</th>
+					<th>회원메일</th>
+				</thead>
+				<tbody id="memTbody">
+
+				</tbody>
+				<tfoot>
+					<tr>
+						<td colspan="7">
+							<div class="d-flex justify-content-center memPagingArea"></div>
+						</td>
+					</tr>
+				</tfoot>
+			</table>
+		</div>
+		<div class="tab-pane" id="cooBoard" role="tabpanel">
+			<table class="table table-bordered">
+				<thead>
+					<th>회원아이디</th>
+					<th>회원이름</th>
+					<th>회원닉네임</th>
+					<th>회원메일</th>
+					<th>회원전화번호</th>
+				</thead>
+				<tbody id="expTbody">
+
+				</tbody>
+				<tfoot>
+					<tr>
+						<td colspan="7">
+							<div class="d-flex justify-content-center expPagingArea"></div>
+						</td>
+					</tr>
+				</tfoot>
+			</table>
+		</div>
+		<div class="tab-pane" id="freeBoard" role="tabpanel">
+			<table class="table table-bordered">
+				<thead>
+					<th>회원아이디</th>
+					<th>회원이름</th>
+					<th>회원닉네임</th>
+					<th>회원메일</th>
+					<th>회원전화번호</th>
+				</thead>
+				<tbody id="projTbody">
+
+				</tbody>
+				<tfoot>
+					<tr>
+						<td colspan="7">
+							<div class="d-flex justify-content-center projPagingArea">
+
+							</div>
+						</td>
+					</tr>
+				</tfoot>
+			</table>
+		</div>
+	</div>
+</div>
+
+<form id="searchForm" method="post">
+	<input type="text" name="memPage" id="memPage"/> 
+	<input type="text" name="memPage2" value="2" /> 
+	<input type="text" name="memPage3" value="3" /> 
+	<input type="text" name="memPage4" value="4" />
+</form>
+
+<script>
+	// window.onload = function() {
+	// 	f_test();
+	// };
+		let searchForm = document.querySelector("#searchForm");
+	// 	let memTbody = document.querySelector("#memTbody");
+		let memPagingArea = document.querySelector(".memPagingArea");
+		let memPage = document.querySelector("#memPage");
+	
+		let url = searchForm.action;
+		let method = searchForm.method;
+	
+		//jQuery serialze 흉네
+		function selfPround(p_form) {
+			var v_elems = p_form.elements;
+			var v_returnStr = "";
+			for (var i = 0; i < v_elems.length; i++) {
+				v_returnStr += v_elems[i].name + "=" + v_elems[i].value + "&";
+			}
+			return v_returnStr;
+		}
+	
+		let VIEWURL = "/Otion/admin/reprot/num";
+		
+	var axios = {};
+	axios.report = function(p_method, p_url) {
+		return new Promise(function(resolve, reject) {
+	// 		var data = new FormData(memPage); // FormData를 쓰는 순간 짜동으로 multipart/form-data
+			var data = selfPround(searchForm);
+			var v_ajax = new XMLHttpRequest();
+			v_ajax.open(p_method, p_url, true);
+			v_ajax.setRequestHeader("Content-Type", "application/json");
+			v_ajax.onreadystatechange = function() {
+				if (v_ajax.readyState == 4 && v_ajax.status == 200) {
+					resolve(v_ajax.responseText);
+				}
+			}
+			v_ajax.send(data);
+		});
+	}
+	
+	async function f_test(){
+		var v_rslt = await axios.report(method, url+"/mem");
+		let pagingVO = JSON.stringify(v_rslt);
+		console.log("pagingVO", pagingVO);
+		let memList = pagingVO.dataList;
+		console.log("memList", memList)
+	// 	let pagingHTMLBS = pagingVO.pagingHTMLBS;
+	// 	memPagingArea.innerHTML = pagingHTMLBS;
+	
+		// if (memList && memList.length > 0) {
+		// 	for (var i = 0; i < memList.length; i++) {
+		// 		var mem = memList[i];
+		
+		// 		var rnumTd = document.createElement("td");
+		// 		rnumTd.innerHTML = mem.rnum;
+		// 		var idTd = document.createElement("td");
+		// 		idTd.innerHTML = mem.memId;
+		// 		var nameTd = document.createElement("td");
+		// 		var nameA = document.createElement("a");
+		// 		nameA.setAttribute("href", VIEWURL.replace("num", mem.memId));
+		// 		nameA.innerHTML = mem.memName;
+		// 		nameTd.appendChild(nameA);
+		
+		// 		var nickTd = document.createElement("td");
+		// 		nickTd.innerHTML = mem.memNick;
+		// 		var mailTd = document.createElement("td");
+		// 		mailTd.innerHTML = mem.memMail;
+		
+		// 		var tr = document.createElement('tr');
+		// 		tr.appendChild(rnumTd);
+		// 		tr.appendChild(idTd);
+		// 		tr.appendChild(nameTd);
+		// 		tr.appendChild(nickTd);
+		// 		tr.appendChild(mailTd);
+		
+		// 		memTbody.appendChild(tr);
+		// 	}
+		// } else {
+		// 	var nullTd = document.createElement("td");
+		// 	nullTd.innerHTML = "신고 내역이 없습니다.";
+		// 	nullTd.setAttribute("colspan", 5);
+	
+		// 	var tr = document.createElement('tr');
+		// 	tr.appendChild(nullTd);
+	
+		// 	memTbody.appendChild(tr);
+		// }
+	// });
+	}
+	
+	f_test();
+	
+	// memPagingArea.addEventListener('click', function(event){
+	// 	let page = event.target.innerText;
+	// 	memPage.value = page;
+	// 	f_report();
+	// });
+	
+	</script>

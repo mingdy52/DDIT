@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<meta charset='utf-8'>
+<script>
+    // ... spread operator, destructuring(구조분해)
+    // 꼭 써야 되는 건 아닌데, 안 쓰면 없어보이고, 쓰면 모던스타일로 있어 보임
+    // ... 은 매개변수 편하게 사용하기 위해서 도입됨
+    // destructuring 은 객체에서 속성 편하게 빼 쓰기 위해서 도입
+
+    /*
+    function ghi(p_arg1, p_arg2, p_arg3, p_arg4, p_arg5){
+
+    }
+    */
+
+   function ghi(...p_args){ // spread operator
+    alert("넘어온 갯수: " + p_args.length);
+    alert("두번째 값: " + p_args[1] + "입니다");
+   }
+
+   // ghi("고혜인", "토끼눈", "말없음", "언제까징?", "목소리 구분 불가");
+
+   const jay = {
+    name: "아영"
+    , alias:"역시 말없음"
+    , age:200
+    , nickname:"은더우먼"
+   };
+
+   let {nickname, name} = jay; // destructuring(구조분해)
+
+   alert(nickname); // ?
+   alert(name); // ?
+</script>

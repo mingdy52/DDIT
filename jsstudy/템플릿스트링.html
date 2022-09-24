@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <title>Page Title</title>
+</head>
+<body>
+
+<script>
+    // 문자열 더하기 편하게 하라고 나온 Template String
+    // 스프링 EL과 형식이 같음에 주의
+    // JSP 안에서 사용할 때 충돌나지 않게 사용해야 함, \(Excape Sequence) 처리
+    // 자바에게는 $가 EL 이 아니고 그냥 문자 $ 임을 알려줘야 함
+    let l_name = "이승준";
+    let l_anyoung = `\${l_name} Good Morning`; // 백틱(`) 사용됨에 주의
+    alert(l_anyoung);
+</script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <title>Page Title</title>
+</head>
+<body>
+    <input type="button" value="누르숑" id="id_btn">
+
+<script>
+    var myLog = document.write.bind(document);
+    // write 메소드 안에 this 가 사용되었다면 그것을 강제로 document로 바꿔줌.
+    // 새로운 메소드의 포인터(함수 포인터 FP) 를 리턴해줌
+
+    /*
+    function myLog(p_arg){
+        document.write(p_arg);
+    }
+    */
+    myLog("<h1>로그1 남기기</h1><br>");
+    myLog("<h2>로그2 남기기</h2><br>");
+    myLog("<h3>로그3 남기기</h3><br>");
+    myLog("<h4>로그4 남기기</h4><br>");
+    myLog("<h5>로그5 남기기</h5><br>");
+
+    var v_obj = {
+        name:"윤수웅",
+        friend:"고정현"
+    }
+    // bind 는 내부적으로 복사해서 세로 세팅한 함수 포인터를 리턴
+    // 사용법은 call 하고 똑같다 ~ 하지만 함수포인터를 리턴해주어서 바로 실행되지는 않는다.
+    var v_btn = document.querySelector("#id_btn");
+    // v_btn.addEventListener("click", f_click("매개값"));
+    // 괄호를 붙이는 하는 순간 클릭하지도않았는데 실행된다. 함수를 호출했으니까
+    
+    v_btn.addEventListener("click", f_click.bind(v_obj, "매개값1", "매개값2")); // 이렇게 해야함.
+
+    function f_click(p_arg, p_arg2){
+        console.log(this);
+        console.log(p_arg, p_arg2);
+        alert("나 눌렀엉" + p_arg);
+    }
+    
+</script>
+</body>
+</html>

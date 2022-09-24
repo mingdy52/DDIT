@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<script>
+    // JSON -> JavaScript Object Notation(자바스크립트 객체 표기법)
+    // XML 을 밀어내고 데이터 전송포맷으로
+
+    /*
+    var lij = {}; // new Object();
+    lsj.name = "이승준";
+    lij.age = 30;
+    lsj.getName = function(){
+        return this.name;
+    }
+    
+    alert(lsj.getName());
+    */
+
+    // 배열식 표기법, 필요한 경우가 상당히 존재하기 대문에 알아둬야 함.
+    lsj["name"] = "이승준";
+    lsj["age"] = 30;
+    var v_ppp = "hobby";
+    lsj[v_ppp] = "골프";
+
+    delete lsj.name; // 속성 삭제
+    alert(lsj.name); // undefined
+    alert(lsj.hobby);
+
+    document.body.style.backgroundColor = "blue";
+    document.body.style["background-color"] = "blue";
+    // 하이픈이 들어가면 대문자로 바뀜
+
+
+</script>

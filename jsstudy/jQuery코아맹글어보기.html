@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <title>Page Title</title>
+
+</head>
+<body>
+    <div>김유진</div>
+    <div class="merong">홍승조</div>
+    <div>윤지영</div>
+    <div class="merong">서효림</div>
+<script>
+    // 이 소스는 꼭 한번 확인해 주길 바람(언어에 상관없이 하나의 코딩패턴으로 자리잡고 있음)
+    // 즉각실행함수? 전체 코드상에서 1번만 연산실행결과가 필요할 때 사용
+    // 중요한 코드 블락을 묶어주고 싶을 때 사용
+    // 라이브러리 코드에서 1번 이상 보이고, 일반적인 코드에서는 보기 어려움
+    // let, const, Promise, Async, await, Template String 등은 한번 확인해 보길
+
+    var aaa = "채원존당";
+    alert(window.aaa);
+
+    !function(){ // +,-,! 사용가능
+
+        // new 가 너무나 귀찮아용!
+        // function withoutNew(p_selector){
+        // function $(p_selector){
+        var $ = function $(p_selector){
+            return new MyDom(p_selector);
+        }
+    
+        var MyDom = function(p_selector){ // class 로 사용할 것임
+            var v_elems = document.querySelectorAll(p_selector);
+            this.length = v_elems.length; // 편하게 쓰기 위해서 length 속성 추가
+            // 가져온 element 들을 객체의 속성으로 전환
+            for(var i = 0; i < v_elems.length; i++){
+                this[i] = v_elems[i];
+            }
+    
+            return this; // class 사용할 땐 이것이 생략되어 있음(명시적으로 표현)
+        }
+        window.$ = $; // 전역변수 $ 에 지역번수 $ 를 연결시킴(객체라서 참조방식)
+        $.fn = MyDom.prototype; // 전역변수 $의 속성 fn 에 MyDom 의 속성 prototype 을 연결
+    }(); 
+
+    // $.fn 덕분에 즉각실행 함수 밖에서도 누구나 자신의 메소드를 추가해 줄 수 있음
+
+    $.fn.eq = function(p_index){
+        return this[p_index];
+    }
+
+    $.fn.html = function(p_arg){
+        if(!p_arg){ // p_arg 가 없으면 undefined 가 옴.
+            return this[0].innerHTML; // 매개변수가 없을 때는 첫번째 요소의 innerHTML 리턴
+            // 특정 값을 리턴하는 루틴이라 메소드체이닝 구성 안됨
+        }
+
+        if(typeof(p_arg) == "string"){ // 매개변수가 문자열이 넘어 왔을 때
+            for(var i=0; i<this.length; i++){
+                this[i].innerHTML = p_arg;
+            }
+            return this;
+        }
+        // callback 함수 사용, 이 부분이 중요, 이걸 이해하면
+        // jQuery 사이트 문서가 다 이해가 됨!, 그냥 찾아 쓸 수 있게 됨
+        alert(typeof(p_arg));
+        if(typeof(p_arg) == "function"){
+            alert("함수가 넘어오면 요기가 불리지요");
+            
+            for(var i=0; i<this.length; i++){
+                // this 값을 강제로 각 요소로 세팅하기 위해서 call 사용(apply 를 써도 됨)
+                // p_arg("인덱스", "원래가진 문자열")
+                this[i].innerHTML = p_arg.call(this[i],i, this[i].innerHTML);
+                console.log("aa" + this[i].innerHTML);
+            }
+            return this; // 메소드 체이닝을 위함.
+        }
+    }
+
+    $("div").html(function(p_index, p_oldString) { //callback 뒤에서 부른다고 해서 콜백함수.
+        alert("인덱스 : " + p_index + " innerHTML: " + p_oldString);
+        // return "<h1>이승준</h1>";
+
+        console.log("체킁: ", this); // this?
+        if(p_index == 0){
+            return "<h1>유진 짱개발자</h1>";
+        }
+        if(p_oldString == "윤지영"){
+            return "<h1 style='color:blue'>윤지영</h1>";
+        }
+        return p_oldString; 
+    }).html(function(p_index, p_oldString){
+        console.log("체킁2 : ", this.innerHTML);
+        if(p_index == 1){
+            return "<h1>승조짱 우슴이 귀여븜</h1>";
+        }
+        return p_oldString; // 해당 안되는 건 안 바꾸기 위해서
+    }).html("<h1>결국 단비가 짱 오늘 비옴</h1>");
+
+    // $(".merong").html("<h1>윤지영은 최고의 프로그래머당</h1>");
+    // html() 은 그 안의 모든 문자열을 바꿔버림.
+
+
+    // var v_divs = new MyDom(".merong");
+    // var v_divs = withoutNew(".merong");
+    var v_divs = $(".merong").eq(1);
+    console.log(v_divs);
+    /*
+    v_divs[0].innerHTML += v_divs[0].innerHTML + " 만만세"
+    console.log(v_divs);
+    */
+
+</script>
+</body>
+</html>
