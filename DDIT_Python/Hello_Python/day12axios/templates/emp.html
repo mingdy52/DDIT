@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<title>Insert title here</title>
+<script type="text/javascript">
+   function fn_init() {
+	   fn_list();
+   }
+   
+   function fn_del(){
+		var e_id = document.querySelector("input[name='e_id']").value;
+		
+		var param = {
+				e_id : e_id,
+				
+		 }
+		
+		axios.post('/emp_del.ajax', param)
+        .then(function (response) {
+          var cnt = response.data.cnt;
+          if(cnt == "1"){
+        	  fn_list();
+				document.querySelector("input[name='e_id']").value = "";
+				document.querySelector("input[name='e_name']").value = "";
+				document.querySelector("input[name='sex']").value = "";
+				document.querySelector("input[name='addr']").value = "";
+        	  
+          } else {
+				alert("삭제 도중 문제가 생겼습니다.");
+		  }
+        })
+	}
+   
+   function fn_mod(){
+		var e_id = document.querySelector("input[name='e_id']").value;
+		var e_name = document.querySelector("input[name='e_name']").value;
+		var sex = document.querySelector("input[name='sex']").value;
+		var addr = document.querySelector("input[name='addr']").value;
+		
+		var param = {
+				e_id : e_id,
+				e_name : e_name,
+				sex : sex,
+				addr : addr
+				
+		   }
+	      axios.post('/emp_mod.ajax', param)
+	        .then(function (response) {
+	          var cnt = response.data.cnt;
+	          if(cnt == "1"){
+	        	  fn_list();
+					document.querySelector("input[name='e_id']").value = "";
+					document.querySelector("input[name='e_name']").value = "";
+					document.querySelector("input[name='sex']").value = "";
+					document.querySelector("input[name='addr']").value = "";
+	        	  
+	          } else {
+					alert("수정 도중 문제가 생겼습니다.");
+			  }
+	        })
+		
+	}
+   
+   function fn_add(){
+		var e_id = document.querySelector("input[name='e_id']").value;
+		var e_name = document.querySelector("input[name='e_name']").value;
+		var sex = document.querySelector("input[name='sex']").value;
+		var addr = document.querySelector("input[name='addr']").value;
+		
+		var param = {
+				e_id : e_id,
+				e_name : e_name,
+				sex : sex,
+				addr : addr
+				
+		   }
+	      axios.post('/emp_add.ajax', param)
+	        .then(function (response) {
+	          var cnt = response.data.cnt;
+	          if(cnt == "1"){
+	        	  fn_list();
+					document.querySelector("input[name='e_id']").value = "";
+					document.querySelector("input[name='e_name']").value = "";
+					document.querySelector("input[name='sex']").value = "";
+					document.querySelector("input[name='addr']").value = "";
+	        	  
+	          } else {
+					alert("추가 도중 문제가 생겼습니다.");
+			  }
+	        })
+		
+	}
+   
+   function fn_one(e_id) {
+	   var param = {
+			e_id : e_id
+			
+	   }
+      axios.post('/emp_one.ajax', param)
+        .then(function (response) {
+        	var emp = response.data;
+			document.querySelector("input[name='e_id']").value= emp.e_id;
+			document.querySelector("input[name='e_name']").value= emp.e_name;
+			document.querySelector("input[name='sex']").value= emp.sex;
+			document.querySelector("input[name='addr']").value= emp.addr;
+          
+        })
+        
+   }
+   
+   // JQuery대신 사용하는거
+   function fn_list() {
+	   var param = {
+			e_id : '7',
+			e_name : '7'
+			
+	   }
+      axios.post('/emp_list.ajax', param)
+        .then(function (response) {
+          // 성공했을 때
+          fn_list_cb(response);
+        })
+        
+   }
+   
+   function fn_list_cb(res) {
+	   console.log(res);
+	   var list = res.data;
+	   var trs = "";
+	   for(var i = 0; i <list.length; i++){
+		   var e_id = list[i].e_id;
+		   var e_name = list[i].e_name;
+		   var sex = list[i].sex;
+		   var addr = list[i].addr;
+		   
+		   var tr = 
+				`
+					<tr>
+						<td><a href="javascript:fn_one('${e_id}')">${e_id}</a></td>
+						<td>${e_name}</td>
+						<td>${sex}</td>
+						<td>${addr}</td>
+					</tr>
+				`;
+		   trs += tr;
+			var obj = document.querySelector("#tb");
+			
+			obj.innerHTML = trs;
+	   }
+	   
+   }
+</script>
+</head>
+<body onload="fn_init()">
+   <!-- href = homepage reference : 해당 홈페이지로 넘어가라 -->
+   <table border="1">
+      <thead>
+         <tr>
+            <td>사번</td>
+            <td>이름</td>
+            <td>성별</td>
+            <td>주소</td>
+         </tr>
+      </thead>
+      <tbody id="tb">
+      </tbody>
+   </table>
+   <table border="1">
+      <tr>
+         <td>사번</td>
+         <td><input type="text" name="e_id"></td>
+      </tr>
+      <tr>
+         <td>이름</td>
+         <td><input type="text" name="e_name"></td>
+      </tr>
+      <tr>
+         <td>성별</td>
+         <td><input type="text" name="sex"></td>
+      </tr>
+      <tr>
+         <td>주소</td>
+         <td><input type="text" name="addr"></td>
+      </tr>
+      <tr>
+         <td colspan="2"><input type="button" value="추가"
+            onclick="fn_add()"> <input type="button" value="수정"
+            onclick="fn_mod()"> <input type="button" value="삭제"
+            onclick="fn_del()"></td>
+      </tr>
+   </table>
+</body>
+</html>

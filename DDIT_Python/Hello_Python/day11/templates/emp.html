@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<!-- <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script> -->
+<script src="jquery-3.6.0.min.js"></script>
+<script>
+
+function fn_init(){
+	fn_list();
+}
+
+function fn_list(){
+// 	alert("myclick");
+// 	var obj = document.getElementById("it");
+// 	obj.value = "굿이브닝";
+// 	$("#it").val("굿이브닝");
+	$.ajax({
+		type : "POST",
+		url : "emp_list.ajax",
+		data : {
+			e_id : '1',
+			e_name : '1',
+			sex : '1',
+			addr : '1'
+		},
+		success : function(res){
+			fn_list_callback(res);
+		}
+		
+	});
+	
+}
+
+function fn_del(){
+	var e_id = document.querySelector("input[name='e_id']").value;
+	
+	$.ajax({
+		type : "POST",
+		url : "emp_del.ajax",
+		data : {
+			e_id : e_id,
+		},
+		success : function(res){
+			var cnt = res.cnt;
+			if (cnt ==1){
+				fn_list()
+				document.querySelector("input[name='e_id']").value = "";
+				document.querySelector("input[name='e_name']").value = "";
+				document.querySelector("input[name='sex']").value = "";
+				document.querySelector("input[name='addr']").value = "";
+			} else {
+				alert("수정 도중 문제가 생겼습니다.")
+			}
+		}
+		
+	});
+}
+
+function fn_mod(){
+    var e_id = document.querySelector("input[name='e_id']").value;
+    var e_name = document.querySelector("input[name='e_name']").value;
+    var sex = document.querySelector("input[name='sex']").value;
+    var addr = document.querySelector("input[name='addr']").value;
+    $.ajax({
+       type : "POST",
+       url : "emp_mod.ajax",
+       data : {
+          e_id : e_id,
+          e_name : e_name,
+          sex : sex,
+          addr : addr,
+       },
+       success : function(res) {
+          var cnt = res.cnt;
+          if(cnt == "1"){
+              fn_list();
+              document.querySelector("input[name='e_id']").value = "";
+              document.querySelector("input[name='e_name']").value = "";
+              document.querySelector("input[name='sex']").value = "";
+              document.querySelector("input[name='addr']").value = "";
+          } else {
+             alert("수정도중 문제가 생겼습니다.");
+          }
+
+
+       }
+    });
+ }
+
+function fn_add(){
+	var e_id = document.querySelector("input[name='e_id']").value;
+	var e_name = document.querySelector("input[name='e_name']").value;
+	var sex = document.querySelector("input[name='sex']").value;
+	var addr = document.querySelector("input[name='addr']").value;
+	
+	$.ajax({
+		type : "POST",
+		url : "emp_add.ajax",
+		data : {
+			e_id : e_id,
+			e_name : e_name,
+			sex : sex,
+			addr : addr
+		},
+		success : function(res){
+			var cnt = res.cnt;
+			if (cnt ==1){
+				fn_list()
+				document.querySelector("input[name='e_id']").value = "";
+				document.querySelector("input[name='e_name']").value = "";
+				document.querySelector("input[name='sex']").value = "";
+				document.querySelector("input[name='addr']").value = "";
+			} else {
+				alert("추가 도중 문제가 생겼습니다.")
+			}
+		}
+		
+	});
+}
+
+function fn_one(e_id){
+	$.ajax({
+		type : "POST",
+		url : "emp_one.ajax",
+		data : {
+			e_id : e_id,
+			
+		},
+		success : function(res){
+			var emp = res;
+			document.querySelector("input[name='e_id']").value= emp.e_id;
+			document.querySelector("input[name='e_name']").value= emp.e_name;
+			document.querySelector("input[name='sex']").value= emp.sex;
+			document.querySelector("input[name='addr']").value= emp.addr;
+		}
+		
+	});
+}
+
+function fn_list_callback(res){
+	var list = res;
+	var trs = ""
+	for(var i = 0; i<list.length; i++){
+		var e_id = list[i].e_id;
+		var e_name = list[i].e_name;
+		var sex = list[i].sex;
+		var addr = list[i].addr;
+		var tr = 
+			`
+			<tr>
+				<td><a href="javascript:fn_one('${e_id}')">${e_id}</a></td>
+				<td>${e_name}</td>
+				<td>${sex}</td>
+				<td>${addr}</td>
+			</tr>
+			`;
+			trs += tr;
+			var obj = document.querySelector("#tb");
+			obj.innerHTML = trs;
+	}
+}
+</script>
+</head>
+<body onload="fn_list()">
+
+
+	<table border="1px">
+	<thead>
+		<tr>
+			<td>사번</td>
+			<td>이름</td>
+			<td>성별</td>
+			<td>주소</td>
+		</tr>
+	</thead>
+	<tbody id="tb">
+		
+	</tbody>
+	</table>
+
+	<table border="1px">
+	<thead>
+		<tr>
+			<td>사번</td>
+			<td>
+				<input type="text" name="e_id">
+			</td>
+		</tr>
+		<tr>
+			<td>이름</td>
+			<td>
+				<input type="text" name="e_name">
+			</td>
+		</tr>
+		<tr>
+			<td>성별</td>
+			<td>
+				<input type="text" name="sex">
+			</td>
+		</tr>
+		<tr>
+			<td>주소</td>
+			<td>
+				<input type="text" name="addr">
+			</td>
+		</tr>
+		<tr>
+			<td colspan="2">
+				<input type="button" value="추가" onclick="fn_add()">
+				<input type="button" value="수정" onclick="fn_mod()">
+				<input type="button" value="삭제" onclick="fn_del()">
+			</td>
+		</tr>
+	</thead>
+	<tbody id="tb">
+		
+	</tbody>
+	</table>
+
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<script>
+	function fn_mod(e_id){
+		location.href="emp_mod?e_id="+e_id;
+	}
+	function fn_del(e_id){
+		var conf = confirm("삭제하시겠습니까?")
+		
+		if(!conf){
+			return;
+		}
+			location.href="emp_del?e_id="+e_id;
+	}
+	
+</script>
+</head>
+<body>
+<a href="emp_add">추가</a>
+	<table border="1">
+		<tr>
+			<td>사번</td>
+			<td>이름</td>
+			<td>성별</td>
+			<td>주소</td>
+			<td>수정</td>
+			<td>삭제</td>
+		</tr>
+{% for i in emps %}
+		<tr>
+			<td>{{i.e_id}}</td>
+			<td>{{i.e_name}}</td>
+			<td>{{i.sex}}</td>
+			<td>{{i.addr}}</td>
+			<td><input type="button" value="수정" onclick="fn_mod('{{i.e_id}}')"></td>
+			<td><input type="button" value="삭제" onclick="fn_del('{{i.e_id}}')"></td>
+		</tr>
+{% endfor %}
+	</table>
+	
+</body>
+</html>

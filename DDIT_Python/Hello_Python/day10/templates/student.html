@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<script>
+	function fn_mod(s_id){
+		location.href="student_mod?s_id="+s_id;
+	}
+	function fn_del(s_id){
+		var conf = confirm("삭제하시겠습니까?")
+		if(!conf){
+			return;
+		}
+		location.href="student_del?s_id="+s_id;
+	}
+</script>
+</head>
+<body>
+<a href="student_add">추가</a>
+	<table border="1">
+		<tr>
+			<td>학번</td>
+			<td>이름</td>
+			<td>번호</td>
+			<td>수정</td>
+			<td>삭제</td>
+		</tr>
+{% for i in students %}
+		<tr>
+			<td>{{i.s_id}}</td>
+			<td>{{i.s_name}}</td>
+			<td>{{i.tel}}</td>
+			<td><input type="button" value="수정" onclick="fn_mod('{{i.s_id}}')"></td>
+			<td><input type="button" value="삭제" onclick="fn_del('{{i.s_id}}')"></td>
+		</tr>
+{% endfor %}
+	</table>
+	
+</body>
+</html>

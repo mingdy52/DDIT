@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script type="text/javascript">
+	function fn_init(){
+		fn_list();
+	}
+
+	function fn_list() {
+		var param ={
+			e_id: '7',
+			e_name: '7'
+	    }
+		axios.post('http://127.0.0.1:5000/emp_list.ajax',param)
+		.then(function (res) {
+			fn_list_cb(res);
+		})
+
+	}
+	
+	function fn_list_cb(res){
+		console.log(res);
+		var list = res.data;
+		var trs = "";
+		for(var i=0;i<list.length;i++){
+			var e_id = list[i].e_id;
+			var e_name = list[i].e_name;
+			var sex = list[i].sex;
+			var addr = list[i].addr;
+
+			var tr = 
+			`
+				<tr>
+					<td><a href="javascript:fn_one('${e_id}')">${e_id}</a></td>
+					<td>${e_name}</td>
+					<td>${sex}</td>
+					<td>${addr}</td>
+				</tr>
+			`;
+			trs += tr;
+			var obj = document.querySelector("#tb");
+			
+			obj.innerHTML = trs;
+		}
+	}
+	
+	function fn_one(e_id){
+		var param ={
+			e_id: e_id
+	    }
+		axios.post('http://127.0.0.1:5000/emp_one.ajax',param)
+		.then(function (res) {
+			console.log(res.data);
+			var emp = res.data;
+			document.querySelector("input[name='e_id']").value		= emp.e_id;
+			document.querySelector("input[name='e_name']").value	= emp.e_name;
+			document.querySelector("input[name='sex']").value		= emp.sex;
+			document.querySelector("input[name='addr']").value		= emp.addr;
+		})
+
+	}
+	
+	
+	function fn_add(){
+		var e_id = document.querySelector("input[name='e_id']").value;
+		var e_name = document.querySelector("input[name='e_name']").value;
+		var sex = document.querySelector("input[name='sex']").value;
+		var addr = document.querySelector("input[name='addr']").value;
+		
+		var param ={
+			e_id : e_id,
+			e_name : e_name,
+			sex : sex,
+			addr : addr
+	    }
+		axios.post('http://127.0.0.1:5000/emp_add.ajax',param)
+		.then(function (res) {
+			console.log("emp_add.ajax",res);
+			var cnt = res.data.cnt;
+			if(cnt == "1"){
+				 fn_list();
+				 document.querySelector("input[name='e_id']").value = "";
+				 document.querySelector("input[name='e_name']").value = "";
+				 document.querySelector("input[name='sex']").value = "";
+				 document.querySelector("input[name='addr']").value = "";
+			} else {
+				alert("추가도중 문제가 생겼습니다.");
+			}
+		})
+		
+
+	}
+	
+	function fn_mod(){
+		
+		var e_id = document.querySelector("input[name='e_id']").value;
+		var e_name = document.querySelector("input[name='e_name']").value;
+		var sex = document.querySelector("input[name='sex']").value;
+		var addr = document.querySelector("input[name='addr']").value;
+		
+		var param ={
+			e_id : e_id,
+			e_name : e_name,
+			sex : sex,
+			addr : addr
+	    }
+		axios.post('http://127.0.0.1:5000/emp_mod.ajax',param)
+		.then(function (res) {
+			var cnt = res.data.cnt;
+			if(cnt == "1"){
+				 fn_list();
+				 document.querySelector("input[name='e_id']").value = "";
+				 document.querySelector("input[name='e_name']").value = "";
+				 document.querySelector("input[name='sex']").value = "";
+				 document.querySelector("input[name='addr']").value = "";
+			} else {
+				alert("수정도중 문제가 생겼습니다.");
+			}
+		})
+		
+
+	}
+	
+	
+	
+	function fn_del(){
+		var e_id = document.querySelector("input[name='e_id']").value;
+		
+		var param ={
+			e_id : e_id
+	    }
+		axios.post('http://127.0.0.1:5000/emp_del.ajax',param)
+		.then(function (res) {
+			var cnt = res.data.cnt;
+			if(cnt == "1"){
+				 fn_list();
+				 document.querySelector("input[name='e_id']").value = "";
+				 document.querySelector("input[name='e_name']").value = "";
+				 document.querySelector("input[name='sex']").value = "";
+				 document.querySelector("input[name='addr']").value = "";
+			} else {
+				alert("수정도중 문제가 생겼습니다.");
+			}
+		})
+		
+	}
+	
+	
+	
+</script>
+</head>
+<body onload="fn_init()" >
+	<table border="1px">
+		<thead>
+			<tr>
+				<td>사번</td>
+				<td>이름</td>
+				<td>성별</td>
+				<td>주소</td>
+			</tr>
+		</thead>
+		<tbody id="tb">
+			<tr>
+				<td>1</td>
+				<td>1</td>
+				<td>1</td>
+				<td>1</td>
+			</tr>
+			<tr>
+				<td>2</td>
+				<td>2</td>
+				<td>2</td>
+				<td>2</td>
+			</tr>		
+		</tbody>
+
+	</table>
+	<table border="1px">
+		<tr>
+			<td>사번</td>
+			<td>
+				<input type="text" name="e_id" />
+			</td>
+		</tr>	
+		<tr>
+			<td>이름</td>
+			<td>
+				<input type="text" name="e_name" />
+			</td>
+		</tr>
+		<tr>
+			<td>성별</td>
+			<td>
+				<input type="text" name="sex" />
+			</td>
+		</tr>
+		<tr>
+			<td>주소</td>
+			<td>
+				<input type="text" name="addr" />
+			</td>
+		</tr>
+		<tr>
+			<td colspan="2">
+				<input type="button" value="추가" onclick="fn_add()" />
+				<input type="button" value="수정" onclick="fn_mod()" />
+				<input type="button" value="삭제" onclick="fn_del()" />
+				
+			</td>
+		</tr>
+		
+	</table>
+
+</body>
+</html>
+
+
+
+
+
+
+
+

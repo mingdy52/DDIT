@@ -1,0 +1,38 @@
+<html>
+
+<head>
+	<title>title</title>
+	<script src="jquery-3.6.0.js"></script>
+	<script>
+		function myinit(){
+			$.ajax({
+				type : "POST",
+				url : "emp.ajax",
+				data : {
+					e_id : '1'
+				},
+				success : function(res) {
+					console.log(res);
+				}
+			});
+		}
+	</script>
+
+
+</head>
+
+<body onload="myinit()">
+	<input type="text" id="it" value="good moring" /> <br/>
+	<%=a%><br/>
+
+	<% for(var i = 0; i < b.length; i++) {%>
+		<%= b[i] %><br/>
+	<% } %>
+
+	<% for(var i = 0; i < c.length; i++) {%>
+		<%= c[i].e_id %><%= c[i].e_name %><%= c[i].sex %><%= c[i].addr %><br/>
+	<% } %>
+
+</body>
+
+</html>
