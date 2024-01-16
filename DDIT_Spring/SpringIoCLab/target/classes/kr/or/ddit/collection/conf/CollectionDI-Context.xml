@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:c="http://www.springframework.org/schema/c"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.3.xsd">
+	
+	<util:list id="sampleList" list-class="java.util.LinkedList">
+			<list>
+				<value>element1</value>
+<!-- 				기본형 데이터 -->
+				<bean class="java.util.Date" />
+				<ref bean="now"/>
+<!-- 				객체 데이터 -->
+			</list>
+	</util:list>
+	<util:set id="sampleSet" value-type="java.lang.String">
+				<value>element1</value>
+				<value>element2</value>
+	</util:set>
+	<util:map id="sampleMap" key-type="java.lang.String" map-class="java.util.LinkedHashMap">
+				<entry key="key1" value="entryValue" />
+				<entry key="key2" value-ref="now" />
+	</util:map>
+	<util:properties id="sampleProps">
+				<prop key="key1">value1</prop>
+				<prop key="key2">value2</prop>
+	</util:properties>
+	
+	
+<!-- 	<bean class="java.util.ArrayList"></bean> -->
+<!-- 	컬렉션만 있을 뿐 값을 넣어줄 수 없음 -->
+	
+	<bean id="StringArray" class="kr.or.ddit.collection.StringArrayFactoryBean" />
+<!-- 	팩토리 빈은 팩토리 객체가 아닌 팩토리에서 만들어진 객체가 들어옴. -->
+	
+	<bean id="now" class="java.util.Date" scope="prototype"/>
+	<bean id="colVO1" class="kr.or.ddit.collection.CollectionDIVO"
+		c:list-ref="sampleList"
+		c:set-ref="sampleSet"
+		c:map-ref="sampleMap"
+		c:props-ref="sampleProps"
+		c:array-ref="StringArray"
+	/>
+		
+<!-- 		<constructor-arg name="array"> -->
+<!-- 			<array> -->
+<!-- 				<value>element1</value> -->
+<!-- 				<value>element2</value> -->
+<!-- 			</array> -->
+<!-- 		</constructor-arg> -->
+		
+<!-- 		<constructor-arg name="list" ref="sampleList"/> -->
+		
+<!-- 		<constructor-arg name="set" > -->
+<!-- 			<set> -->
+<!-- 				<value>element1</value> -->
+<!-- 				<value>element2</value> -->
+<!-- 			</set> -->
+<!-- 		</constructor-arg> -->
+<!-- 		<constructor-arg name="map"> -->
+<!-- 			<map> -->
+<!-- 				<entry key="key1" value="entryValue" /> -->
+<!-- 				<entry key="key2" value-ref="now" /> -->
+<!-- 					<ref bean="now"/> -->
+<!-- 			</map> -->
+<!-- 		</constructor-arg> -->
+<!-- 		<constructor-arg name="props"> -->
+<!-- 			<props> -->
+<!-- 				<prop key="key1">value1</prop> -->
+<!-- 				<prop key="key2">value2</prop> -->
+<!-- 			</props> -->
+<!-- 		</constructor-arg> -->
+
+
+	<bean id="colVO2" class="kr.or.ddit.collection.CollectionDIVO"></bean>
+</beans>

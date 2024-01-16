@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+<!-- appender : 로그 출력 매체 -->
+<!-- logger : 로그 메시지 전달자 -->
+<!-- layout : 로그 메시지 기록 형식 -->
+<!-- event level : 로그 메시지의 이벤트 등급에 따라 메시지 출력여부 제한 가능. -->
+<!-- 	등급 낮음 debug -> info -> warn -> error -> fatal 등급 높음 -->
+<!-- 	debug: 모든 메시지를 다 기록 -->
+<!-- 	trace: 디버그와 인포 사이 -->
+  <Appenders>
+    <Console name="Console" target="SYSTEM_OUT">
+      <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{1.} - %msg%n"/>
+    </Console>
+  </Appenders>
+  <Loggers>
+  
+  	 <Logger name="jdbc.sqltiming" level="debug"/>
+  	 <Logger name="jdbc.resultsettable" level="debug"/>
+    
+  	 <Logger name="kr.or.ddit" level="info" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
+<!-- 	로거에 등록이 안되어 있으면 root를 따라감. 상위가 kr.or.ddit 를 따라가는 로거들은 debug 레벨을 따라감. -->
+	<Logger name="org.springframework" level = "info" additivity="false">
+		<AppenderRef ref="Console" />
+	</Logger>
+    <Root level="error">
+      <AppenderRef ref="Console"/>
+    </Root>
+<!--     여 타의 프레임워크 등등~~ -->
+    
+  </Loggers>
+</Configuration>

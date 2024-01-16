@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.props.dao.DataBasePropertyDAO">
+
+<!-- 	매퍼프록시 -->
+	<select id="selectDataBaseProperties" parameterType="DataBasePropertyVO" resultType="DataBasePropertyVO">
+		SELECT PROPERTY_NAME, PROPERTY_VALUE, DESCRIPTION FROM DATABASE_PROPERTIES
+	</select>
+	
+</mapper>

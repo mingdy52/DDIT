@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:c="http://www.springframework.org/schema/c"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
+	
+	<aop:aspectj-autoproxy />
+	<tx:annotation-driven transaction-manager="transactionManager"/>
+	
+<!-- 	<tx:advice id="txAdvice" transaction-manager="transactionManager"> -->
+<!-- 		<tx:attributes> -->
+<!-- 			<tx:method name="retrieve*" read-only="true"/> -->
+<!-- <!-- 			조회용이니까 트랜젝션 관리할 필요 없다! --> -->
+			
+<!-- 			<tx:method name="create*" propagation="REQUIRED"/> -->
+<!-- <!-- 			트랜젝션은 전파성과 고립성을 가지고 있음. propagation="REQUIRED" : 트랜젝션 전파하겠다. --> -->
+			
+<!-- 			<tx:method name="modify*" propagation="REQUIRED"/> -->
+<!-- 			<tx:method name="remove*" propagation="REQUIRED"/> -->
+			
+<!-- 		</tx:attributes> -->
+<!-- 	</tx:advice> -->
+	
+<!-- 	<aop:config> -->
+<!-- 		<aop:pointcut expression="execution(* kr.or.ddit..service.*.*(..))" id="pointcut"/> -->
+<!-- 		service.*.*(..) : 서비스 아래 모든 클래스, 모든 메소드, 어떤 파라미터든 -->
+<!-- 		<aop:advisor advice-ref="txAdvice" pointcut-ref="pointcut"/> -->
+<!-- 	</aop:config> -->
+	
+</beans>

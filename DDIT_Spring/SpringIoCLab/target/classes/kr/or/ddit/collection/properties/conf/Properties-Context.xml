@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:c="http://www.springframework.org/schema/c"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.3.xsd">
+	
+	<context:property-placeholder location="classpath:dbInfo2.properties"/>
+	<bean id="infoVO2" class="kr.or.ddit.collection.properties.DBInfoVO" 
+		p:driverClassName="${maindb.driverClassName}"
+		p:driverClass="${maindb.driverClassName}"
+		p:url="${maindb.url}"
+		p:user="${maindb.user}"
+		p:password="${maindb.password}"
+		p:initialSize="${maindb.initialSize}"
+		p:maxTotal="${maindb.maxWait}"
+		p:maxWait="${maindb.maxTotal}"
+		
+		p:service-ref="sampleService"
+	/>
+	
+	<util:properties id="dbInfo" location="classpath:dbInfo.properties">
+		<prop key="key1">value1</prop>
+	</util:properties>
+	<bean id="infoVO1" class="kr.or.ddit.collection.properties.DBInfoVO" 
+		p:driverClassName="#{dbInfo.driverClassName}"
+		p:driverClass="#{dbInfo.driverClassName}"
+		p:url="#{dbInfo['url']}"
+		p:user="#{dbInfo['user']}"
+		p:password="#{dbInfo['password']}"
+		p:initialSize="#{dbInfo['initialSize']}"
+		p:maxTotal="#{dbInfo['maxTotal']}"
+		p:maxWait="#{dbInfo.maxWait}"
+		
+		p:service-ref="sampleService"
+	/>
+
+
+</beans>

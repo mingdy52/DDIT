@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://xmlns.jcp.org/xml/ns/javaee" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd" version="3.1">
+  <display-name>WebStudy03_Framework</display-name>
+  <welcome-file-list>
+    <welcome-file>index.do</welcome-file>
+  </welcome-file-list>
+  <listener>
+    <listener-class>kr.or.ddit.listener.CustomSessionListener</listener-class>
+  </listener>
+  <listener>
+    <listener-class>org.apache.tiles.web.startup.simple.SimpleTilesListener</listener-class>
+  </listener>
+  
+  
+<!--   <filter> -->
+<!--     <filter-name>BlindFilter</filter-name> -->
+<!--     <filter-class>kr.or.ddit.filter.BlindFilter</filter-class> -->
+<!--   </filter> -->
+<!--   <filter-mapping> -->
+<!--     <filter-name>BlindFilter</filter-name> -->
+<!--     <url-pattern>/*</url-pattern> -->
+<!--   </filter-mapping> -->
+  <filter>
+    <filter-name>CharacterEncodingFilter</filter-name>
+    <filter-class>kr.or.ddit.filter.CharacterEncodingFilter</filter-class>
+    <init-param>
+      <param-name>encoding</param-name>
+      <param-value>UTF-8</param-value>
+    </init-param>
+  </filter>
+  <filter-mapping>
+    <filter-name>CharacterEncodingFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+  <filter>
+    <filter-name>MakePrincipalFilter</filter-name>
+    <filter-class>kr.or.ddit.filter.MakePrincipalFilter</filter-class>
+  </filter>
+  <filter-mapping>
+    <filter-name>MakePrincipalFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+<!--   <filter> -->
+<!--     <filter-name>AuthenticateFilter</filter-name> -->
+<!--     <filter-class>kr.or.ddit.filter.auth.AuthenticateFilter</filter-class> -->
+<!--   </filter> -->
+<!--   <filter-mapping> -->
+<!--     <filter-name>AuthenticateFilter</filter-name> -->
+<!--     <url-pattern>/*</url-pattern> -->
+<!--   </filter-mapping> -->
+<!--   <filter> -->
+<!--     <filter-name>AuthorizationFilter</filter-name> -->
+<!--     <filter-class>kr.or.ddit.filter.auth.AuthorizationFilter</filter-class> -->
+<!--   </filter> -->
+<!--   <filter-mapping> -->
+<!--     <filter-name>AuthorizationFilter</filter-name> -->
+<!--     <url-pattern>/*</url-pattern> -->
+<!--   </filter-mapping> -->
+  <filter>
+    <filter-name>MultipartFilter</filter-name>
+    <filter-class>kr.or.ddit.filter.multipart.MultipartFilter</filter-class>
+  </filter>
+  <filter-mapping>
+    <filter-name>MultipartFilter</filter-name>
+    <url-pattern>*.do</url-pattern>
+  </filter-mapping>
+  
+  
+  <servlet>
+    <servlet-name>TilesDispatchServlet</servlet-name>
+    <servlet-class>org.apache.tiles.web.util.TilesDispatchServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>TilesDispatchServlet</servlet-name>
+    <url-pattern>*.tiles</url-pattern>
+  </servlet-mapping>
+  <error-page>
+    <error-code>404</error-code>
+    <location>/errors/error404.jsp</location>
+  </error-page>
+</web-app>
