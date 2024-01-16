@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.common.login.dao.LoginDAO">
+	<resultMap type="MemberVO" id="loginMember" autoMapping="true">
+		<id property="memId" column="MEM_ID"/>
+		<collection property="roleList" javaType="java.util.List" ofType="kr.or.ddit.common.vo.RoleVO" autoMapping="true"/>
+	</resultMap>
+
+	<select id="login" parameterType="String" resultMap="loginMember">
+		SELECT A.*, C.ROLE_CODE, C.ROLE_NAME
+			FROM TB_MEMBER A, TB_ROLE_ASSIGNMENT B, TB_ROLE_GROUP C
+			WHERE A.MEM_ID = B.MEM_ID
+			 AND B.ROLE_CODE=C.ROLE_CODE
+		   AND A.MEM_ID=#{memId}
+	</select>
+	
+	<select id="blackView" parameterType="String" resultType="String">
+		SELECT MEM_ID
+		  FROM TB_BLACKLIST
+		 WHERE MEM_ID = #{memId}
+	</select>
+</mapper>

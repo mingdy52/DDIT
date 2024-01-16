@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE tiles-definitions PUBLIC "-//Apache Software Foundation//DTD Tiles Configuration 3.0//EN" "http://tiles.apache.org/dtds/tiles-config_3_0.dtd" >
+<tiles-definitions>
+<!--  [[개정이력(Modification Information)]]       -->
+<!--  수정일        수정자     수정내용               -->
+<!--  ==========   ======    ==============        -->
+<!--  2022. 8. 4.}     박채록     최초작성               -->
+<!--  Copyright (c) 2022 by DDIT All right reserved -->
+
+
+<!--  ****************홈페이지 타일즈 /공지사항/myexpert/블로그/커뮤**************-->
+  <definition name="parent" template="/WEB-INF/jsp/template/main_tiles.jsp">
+    <put-attribute name="OtionHeader" value="/includee/OtionHeader.jsp" />
+    <put-attribute name="OtionMenu" value="/includee/OtionMenu.jsp" />
+    <put-attribute name="OtionFooter" value="/includee/OtionFooter.jsp" />
+    <put-attribute name="OtionScript" value="/includee/OtionScript.jsp" />
+  </definition>
+    <definition name="notice/**" extends="parent">
+  	<put-attribute name="leftList" value="/WEB-INF/jsp/LeftMenu/notice.jsp" />
+  	<put-attribute name="noticelist" value="/WEB-INF/jsp/notice/{1}.jsp" />
+  </definition>
+  
+  <definition name="qna/**" extends="parent">
+  	<put-attribute name="leftList" value="/WEB-INF/jsp/LeftMenu/qna.jsp" />
+  	<put-attribute name="noticelist" value="/WEB-INF/jsp/qna/{1}.jsp" />
+  </definition>
+  
+  <definition name="blog/**" extends="parent">
+  	<put-attribute name="leftList" value="/WEB-INF/jsp/LeftMenu/blog.jsp" />
+  	<put-attribute name="noticelist" value="/WEB-INF/jsp/blog/{1}.jsp" />
+  </definition>
+   <definition name="admin/**" extends="parent">
+  	<put-attribute name="leftList" value="/WEB-INF/jsp/LeftMenu/admin.jsp" />
+  	<put-attribute name="noticelist" value="/WEB-INF/jsp/admin/{1}.jsp" />
+  </definition>
+     <definition name="expert/**" extends="parent">
+  	<put-attribute name="leftList" value="/WEB-INF/jsp/LeftMenu/expert.jsp" />
+  	<put-attribute name="noticelist" value="/WEB-INF/jsp/expert/{1}.jsp" />
+  </definition>
+       <definition name="member/**" extends="parent">
+  	<put-attribute name="leftList" value="/WEB-INF/jsp/LeftMenu/member.jsp" />
+  	<put-attribute name="noticelist" value="/WEB-INF/jsp/member/{1}.jsp" />
+  </definition>
+    <definition name="coop/**" extends="parent">
+    <put-attribute name="leftList" value="/WEB-INF/jsp/LeftMenu/community.jsp" />
+  	<put-attribute name="noticelist" value="/WEB-INF/jsp/community/coop/{1}.jsp" />
+  </definition>
+    <definition name="free/**" extends="parent">
+    <put-attribute name="leftList" value="/WEB-INF/jsp/LeftMenu/community.jsp" />
+  	<put-attribute name="noticelist" value="/WEB-INF/jsp/community/free/{1}.jsp" />
+  </definition>
+<!--  ****************협업툴타일즈 ******************************-->
+  <definition name="Teamparent" template="/WEB-INF/jsp/template/proj_tiles.jsp">
+    <put-attribute name="ProjHeader" value="/includee/project/ProjHeader.jsp"></put-attribute>
+  	<put-attribute name="ProjMenu" value="/includee/project/ProjMenu.jsp"></put-attribute>
+  	<put-attribute name="ProjSide" value="/includee/project/ProjSide.jsp"></put-attribute>
+	<put-attribute name="ProjMessage"
+		value="/includee/project/ProjMessage.jsp"></put-attribute>
+  </definition>
+   <definition name="Teamparent2" template="/WEB-INF/jsp/template/proj_tiles2.jsp">
+    <put-attribute name="ProjHeader" value="/includee/project/ProjHeader.jsp"></put-attribute>
+  	<put-attribute name="ProjMenu" value="/includee/project/ProjMenu.jsp"></put-attribute>
+  	<put-attribute name="ProjSide" value="/includee/project/ProjSide.jsp"></put-attribute>
+  </definition>
+   <definition name="project/**" extends="Teamparent">
+		<put-attribute name="bodies" value="/WEB-INF/jsp/project/{1}.jsp" />
+		<put-attribute name="sidebody" value="/WEB-INF/jsp/project/sidebar/project.jsp" />
+  </definition>
+    
+ <!--  ****************협업툴타일즈 메세지 미적용******************************-->
+   <definition name="Nomessage" template="/WEB-INF/jsp/template/proj_tiles2.jsp">
+    <put-attribute name="ProjHeader" value="/includee/project/ProjHeader.jsp"></put-attribute>
+  	<put-attribute name="ProjMenu" value="/includee/project/ProjMenu.jsp"></put-attribute>
+  	<put-attribute name="ProjSide" value="/includee/project/ProjSide.jsp"></put-attribute>
+  </definition>
+   <definition name="project2/**" extends="Nomessage">
+		<put-attribute name="bodies" value="/WEB-INF/jsp/project2/{1}.jsp" />
+		<put-attribute name="sidebody" value="/WEB-INF/jsp/project/sidebar/project.jsp" />
+  </definition>
+  
+<!-- ******************블로그타일즈!*************************** -->
+
+	<definition name="Blogparent" template="/WEB-INF/jsp/template/blog_tiles.jsp">
+	<put-attribute name="OtionHeader" value="/includee/OtionHeader.jsp" />
+	</definition>
+    <definition name="myblog/**" extends="Blogparent">
+		<put-attribute name="blogList" value="/WEB-INF/jsp/blog/blogList.jsp" />
+		<put-attribute name="contents" value="/WEB-INF/jsp/myblog/{1}.jsp" />
+		<put-attribute name="memoList" value="/WEB-INF/jsp/blog/memoList.jsp" />
+    </definition>
+<!-- ****************** 블로그 관리자 타일즈    ****************** -->
+	<definition name="Blogparent" template="/WEB-INF/jsp/template/blog_tiles.jsp">
+	<put-attribute name="OtionHeader" value="/includee/OtionHeader.jsp" />
+	</definition>
+    <definition name="blogManage/**" extends="Blogparent">
+		<put-attribute name="blogList" value="/WEB-INF/jsp/blog/manageList.jsp" />
+		<put-attribute name="contents" value="/WEB-INF/jsp/blogManage/{1}.jsp" />
+		<put-attribute name="memoList" value="/WEB-INF/jsp/blog/memoList.jsp" />
+    </definition>
+
+<!--  ******************레프트메뉴가없는 타일즈 ****************** -->
+
+	<definition name="noLeft" template="/WEB-INF/jsp/template/nomenu_tiles.jsp">
+    <put-attribute name="OtionHeader" value="/includee/OtionHeader.jsp" />
+    <put-attribute name="OtionMenu" value="/includee/OtionMenu.jsp" />
+    <put-attribute name="OtionFooter" value="/includee/OtionFooter.jsp" />
+    <put-attribute name="OtionScript" value="/includee/OtionScript.jsp" />
+	</definition>
+    <definition name="noleftMenu/**" extends="noLeft">
+  	<put-attribute name="noticelist" value="/WEB-INF/jsp/noleftMenu/{1}.jsp" />
+  </definition>
+</tiles-definitions>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- [[개정이력(Modification Information)]] -->
+<!-- 수정일 수정자 수정내용 -->
+<!-- ========== ====== ============== -->
+<!-- 2022. 8. 22. 고정현 최초작성 -->
+<!-- 2022. 9. 06. 서효림 1차수정 -->
+<!-- 2022. 9. 07. 서효림 2차수정 -->
+<!-- Copyright (c) 2022 by DDIT All right reserved -->
+
+ 
+<mapper namespace="kr.or.ddit.community.coop.dao.CooBoardDAO">
+	<sql id="searchCoo">
+		WHERE DEL_YN = 'N'
+		<if
+			test="simpleCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+			<choose>
+				<when test="simpleCondition.searchType eq 'id'">
+					AND INSTR(WRITER_ID, #{simpleCondition.searchWord}) > 0
+				</when>
+				<when test="simpleCondition.searchType eq 'title'">
+					AND INSTR(COO_TITLE, #{simpleCondition.searchWord}) > 0
+				</when>
+				<when test="simpleCondition.searchType eq 'content'">
+					AND INSTR(COO_CONTENT, #{simpleCondition.searchWord}) > 0
+				</when>
+				<otherwise>
+					AND( INSTR(WRITER_ID, #{simpleCondition.searchWord}) > 0
+					OR INSTR(COO_TITLE, #{simpleCondition.searchWord}) > 0
+					OR INSTR(COO_CONTENT, #{simpleCondition.searchWord}) > 0
+					)
+				</otherwise>
+			</choose>
+		</if>
+	</sql>
+	<select id="selectCooBoardList" parameterType="PagingVO"
+		resultType="CooBoardVO">
+		SELECT B.*
+		FROM(
+		SELECT ROWNUM RNUM, A.*
+		FROM (
+		SELECT COO_NUM
+		, COO_TITLE
+		, VIEW_NUM
+		, COO_DONE_YN
+		, COO_PEOPLE_NUM
+		, WRITER_ID
+		, TO_CHAR(COO_START, 'YYYY-MM-DD')COO_START
+		, TO_CHAR(COO_END, 'YYYY-MM-DD')COO_END
+		, TO_CHAR(COO_DATE, 'YYYY-MM-DD')COO_DATE
+		FROM TB_COOBOARD
+		<include refid="searchCoo" />
+		ORDER BY COO_NUM DESC
+		)A
+		)B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+
+	<resultMap type="CooBoardVO" id="cooMap" autoMapping="true">
+		<id property="cooNum" column="COO_NUM" />
+		<collection property="attatchList" ofType="AttatchVO"
+			autoMapping="true" />
+	</resultMap>
+
+	<select id="selectCooBoard" parameterType="String"
+		resultMap="cooMap">
+		SELECT
+		COO_NUM
+		, WRITER_ID
+		, COO_TITLE
+		, COO_CONTENT
+		, COO_PEOPLE_NUM
+		, TO_CHAR(COO_START,'YYYY-mm-dd') AS COO_START
+		, TO_CHAR(COO_END,'YYYY-mm-dd') AS COO_END
+		, COO_DONE_YN
+		, REP_NUM
+		, VIEW_NUM
+		, BLIND_YN
+		, DEL_YN
+		, PJ_ID
+		, (SELECT PJ_NAME FROM TB_PROJECT D WHERE D.PJ_ID=A.PJ_ID) PJ_NAME
+		, TO_CHAR(COO_DATE,'YYYY-mm-dd HH24:MI') AS COO_DATE
+		, B.ATTATCH_NUM
+		, DEL_YN
+		, ATTATCH_ORDER
+		, ATTATCH_PLACE
+		, FILE_PATH
+		, ORIGIN_NM
+		, SAVE_NM
+		, ATTATCH_TYPE
+		, ATTATCH_SIZE
+		, ATTATCH_DATE
+		, UPLOADER_ID
+		FROM TB_COOBOARD A
+		LEFT OUTER JOIN TB_ATTATCH B ON (A.COO_NUM = B.ATTATCH_PLACE)
+		WHERE COO_NUM = #{cooNum}
+		AND DEL_YN = 'N'
+	</select>
+
+	<update id="incrementHitCoo" parameterType="String">
+		UPDATE TB_COOBOARD
+		SET
+		VIEW_NUM = VIEW_NUM+1
+		WHERE COO_NUM = #{cooNum}
+	</update>
+	<select id="selectCoo" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(*)
+		FROM TB_COOBOARD
+		<include refid="searchCoo" />
+	</select>
+	<!-- 20220906 -->
+	<insert id="insertCooBoard" parameterType="CooBoardVO">
+		<selectKey resultType="String" keyProperty="cooNum"
+			order="BEFORE">
+			SELECT FN_CREATE_NUM(TO_CHAR(SYSDATE,'YYMMDD'), 'TB_COOBOARD',
+			'COO_NUM', UPPER('COBO'))
+			FROM DUAL
+		</selectKey>
+		INSERT INTO TB_COOBOARD (
+		COO_NUM
+		, WRITER_ID
+		, COO_TITLE
+		, COO_CONTENT
+		, COO_PEOPLE_NUM
+		, COO_DATE
+		, COO_START
+		, COO_END
+		, COO_DONE_YN
+		, REP_NUM
+		, VIEW_NUM
+		, BLIND_YN
+		, DEL_YN
+		, PJ_ID
+		) VALUES(
+		#{cooNum,jdbcType=VARCHAR}
+		, #{writerId,jdbcType=VARCHAR}
+		, #{cooTitle,jdbcType=VARCHAR}
+		, #{cooContent,jdbcType=CLOB}
+		, #{cooPeopleNum,jdbcType=NUMERIC}
+		, SYSDATE
+		, #{cooStart,jdbcType=DATE}
+		, #{cooEnd,jdbcType=DATE}
+		, 'N'
+		, 0
+		, 0
+		, 'N'
+		, 'N'
+		, #{pjId,jdbcType=VARCHAR}
+		)
+	</insert>
+
+	<update id="deleteCooBoard" parameterType="String">
+		UPDATE TB_COOBOARD
+		   SET
+		DEL_YN = 'Y'
+		WHERE COO_NUM = #{cooNum}
+	</update>
+
+	<update id="updateCooBoard" parameterType="CooBoardVO">
+		UPDATE TB_COOBOARD
+		SET
+		COO_TITLE = #{cooTitle,jdbcType=VARCHAR}
+		, COO_CONTENT = #{cooContent,jdbcType=CLOB}
+		, COO_START = #{cooStart,jdbcType=DATE}
+		, COO_END = #{cooEnd,jdbcType=DATE}
+		, COO_PEOPLE_NUM = #{cooPeopleNum,jdbcType=NUMERIC}
+		<!-- , PJ_ID = #{pjId,jdbcType=VARCHAR} -->
+		WHERE COO_NUM = #{cooNum}
+	</update>
+	
+	<update id="updateCoostate" parameterType="CooBoardVO">
+		UPDATE TB_COOBOARD
+		   SET
+		 COO_DONE_YN= #{cooDoneYn,jdbcType=VARCHAR}
+		 WHERE COO_NUM = #{cooNum}
+	</update>
+
+</mapper>

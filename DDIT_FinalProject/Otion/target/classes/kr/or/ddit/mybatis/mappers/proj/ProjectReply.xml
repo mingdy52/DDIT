@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.proj.reply.dao.ProjectReplyDAO">
+	<select id="selectTotalRecord" parameterType="PagingVO"
+		resultType="int">
+		SELECT COUNT(*)
+		FROM TB_WORK_REPLY A, TB_WORK B
+		WHERE A.WORK_NUM = B.WORK_NUM
+		AND A.WRITER_NUM= #{detailCondition.writerNum}
+		AND B.PJ_ID = #{detailCondition.pjId}
+		<include refid="searchTitle" />
+	</select>
+
+	<sql id="searchTitle">
+		<trim prefix="AND">
+			<if
+				test="@org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+				(
+				INSTR(WO_REPLY_CONTENT,#{simpleCondition.searchWord}) > 0
+				)
+			</if>
+		</trim>
+	</sql>
+
+	<insert id="insertReply">
+
+		<selectKey keyProperty="woReplyNum" keyColumn="WO_REPLY_NUM"
+			order="BEFORE" resultType="String">
+			SELECT fn_create_num(to_char(sysdate,'yymmdd'),
+			'TB_WORK_REPLY','WO_REPLY_NUM', UPPER('WORE')) FROM DUAL
+		</selectKey>
+
+		INSERT INTO TB_WORK_REPLY
+		( WO_REPLY_NUM,
+			WRITER_NUM,
+			WORK_NUM,
+			WO_REPLY_CONTENT,
+			WO_REPLY_DATE
+		,PARENT_WO_REPLY_NUM
+		) VALUES
+		(
+		#{woReplyNum}
+		,#{writerNum}
+		,#{workNum}
+		,#{woReplyContent}
+		,SYSDATE
+		,#{parentWoReplyNum,jdbcType=VARCHAR}
+		)
+
+	</insert>
+	
+	<select id="pagingSelectReplyList" parameterType="PagingVO" resultType="ReplyVO">
+		SELECT *
+		FROM (SELECT ROWNUM RNUM, WO_REPLY_NUM,
+			WRITER_NUM,
+			WORK_NUM,
+			WO_REPLY_CONTENT,
+			WO_REPLY_DATE
+		,PARENT_WO_REPLY_NUM
+		FROM TB_WORK_REPLY
+		WHERE WRITER_NUM = #{detailCondition.writerNum}
+		<include refid="searchTitle" />
+		)
+		 <![CDATA[
+  		WHERE RNUM >= #{startRow} AND RNUM <=#{endRow}
+  		 ]]>
+	</select>
+	
+	<resultMap type="ReplyVO" id="replyList" autoMapping="true">
+		<id property="woReplyNum" column="WO_REPLY_NUM"/>
+		<association property="work" javaType="WorkVO" autoMapping="true" />
+	</resultMap>
+	
+	<select id="selectReplyList" parameterType="ColleagueVO" resultMap="replyList">
+		SELECT ROWNUM RNUM, A.WO_REPLY_NUM,
+			A.WRITER_NUM,
+			A.WORK_NUM,
+			A.WO_REPLY_CONTENT,
+			A.WO_REPLY_DATE,
+			B.PJ_ID, B.WORK_REQ, B.WORK_TITLE,
+		B.WORK_CONTENT, B.WORK_STATUS_CODE,
+		TO_CHAR(B.WORK_START,'YYYY-MM-DD') AS WORK_START,TO_CHAR(B.WORK_END,'YYYY-MM-DD')AS WORK_END,
+		B.WORK_PRIORITY,B.PARENT_WORK_NUM
+		,A.PARENT_WO_REPLY_NUM
+		FROM TB_WORK_REPLY A, TB_WORK B
+		WHERE A.WORK_NUM = B.WORK_NUM
+		  AND WRITER_NUM = #{colNum}
+		<if
+				test="simpleCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+				AND INSTR(WO_REPLY_CONTENT,#{simpleCondition.searchWord}) > 0
+			</if>
+	</select>
+</mapper>

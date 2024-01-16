@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.common.comcode.dao.ComCodeDAO">
+	<select id="selectComCodeList" parameterType="String" resultType="ComCodeVO">
+		SELECT COM_CODE, COM_CODE_NM
+		  FROM TB_COM_CODE
+		 WHERE COM_CODE_GRP = #{comCode}
+	</select>
+	
+	<insert id="insertMemberRoleAssignment" parameterType="String">
+		INSERT INTO TB_ROLE_ASSIGNMENT(
+			MEM_ID,
+			ROLE_CODE
+		)
+		VALUES(
+			#{memId},
+			'ROLE_USER'
+		)
+	</insert>
+</mapper>

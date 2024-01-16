@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.community.coop.dao.CooFormDAO">
+	<insert id="insertCooForm" parameterType="CooFormVO">
+		<selectKey keyProperty="cooFormNum" resultType="String" order="BEFORE">
+			SELECT fn_create_num(to_char(SYSDATE,'yymmdd'), 'TB_COOFORM', 'COO_FORM_NUM', UPPER('COFO'))
+ 			FROM DUAL
+		</selectKey>
+			INSERT INTO TB_COOFORM
+			(
+				COO_FORM_NUM,
+				APPLICANT_ID,
+				COO_NUM,
+				COO_FORM_CONTENT,
+				COO_ASSUME_ATTATCH
+			)
+			VALUES(
+				#{cooFormNum},
+				#{applicantId},
+				#{cooNum},
+				#{cooFormContent},
+				#{cooAssumeAttatch}
+			)
+		
+	</insert>
+	
+	<update id="cancelForm" parameterType="String">
+		UPDATE TB_COOFORM
+		   SET COO_FROM_DATE = SYSDATE,
+		       COO_APPR_CODE = 'A04'
+		 WHERE COO_FORM_NUM = #{cooNum}
+	</update>
+	
+	<update id="correctForm">
+		UPDATE TB_COOFORM
+		   SET COO_FROM_DATE = SYSDATE,
+		       COO_APPR_CODE = 'A03'
+		 WHERE COO_FORM_NUM = #{cooNum}
+	</update>
+	
+	<select id="selectProject" resultType="ProjectVO" parameterType="String">
+		SELECT 
+			PJ_ID
+			, PJ_NAME
+		FROM TB_PROJECT
+		WHERE PJ_CREATOR_ID = #{memId}
+		AND PJ_STATUS_CODE = 'PS01'
+	</select>
+
+</mapper>

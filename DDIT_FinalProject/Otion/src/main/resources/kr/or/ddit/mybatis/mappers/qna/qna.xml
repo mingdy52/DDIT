@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--  [[개정이력(Modification Information)]]       -->
+<!--  수정일        수정자     수정내용               -->
+<!--  ==========   ======    ==============        -->
+<!--  2022. 8. 22.}     서효림    최초작성               -->
+<!--  Copyright (c) 2022 by DDIT All right reserved -->
+
+<mapper namespace="kr.or.ddit.question.dao.QNABoardDAO">
+	<sql id="searchQNA">
+		WHERE DEL_YN = 'N'
+			<trim prefix="AND">
+				<if test="answerYN neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(answerYN)">
+					<choose>
+						<when test='answerYN eq "N"'>
+							ANSWER_ID IS NULL
+						</when>
+						<when test='answerYN eq "Y"'>
+							ANSWER_ID IS NOT NULL
+						</when>
+					</choose>
+				</if>
+				<if test="pagingVO.simpleCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(pagingVO.simpleCondition.searchWord)">
+					<choose>
+						<when test="pagingVO.simpleCondition.searchType eq 'id'">
+							INSTR(WRITER_ID, #{pagingVO.simpleCondition.searchWord}) > 0
+						</when>
+						<when test="pagingVO.simpleCondition.searchType eq 'title'">
+							INSTR(QNA_TITLE, #{pagingVO.simpleCondition.searchWord}) > 0
+						</when>
+						<when test="pagingVO.simpleCondition.searchType eq 'content'">
+							INSTR(QNA_CONTENT, #{pagingVO.simpleCondition.searchWord}) > 0
+						</when>
+						<otherwise>
+							(
+									INSTR(WRITER_ID, #{pagingVO.simpleCondition.searchWord}) > 0
+								OR	INSTR(QNA_TITLE, #{pagingVO.simpleCondition.searchWord}) > 0
+								OR	INSTR(QNA_CONTENT, #{pagingVO.simpleCondition.searchWord}) > 0
+							)
+						</otherwise>
+					</choose>
+				</if>		
+			</trim>
+	</sql>
+	
+	<select id="selectQNABoardCount" parameterType="map" resultType="int" >
+		SELECT COUNT(*)
+		FROM TB_QNA
+		<include refid="searchQNA" />
+	</select>
+	
+	<select id="selectQNABoardList" parameterType="map" resultType="QNABoardVO">
+		SELECT B.*
+		FROM(
+			SELECT ROWNUM RNUM, A.*
+			FROM(
+				
+				SELECT QNA_NUM
+				        , QNA_TITLE
+				        , WRITER_ID
+						, TO_CHAR(QNA_DATE, 'YYYY.MM.DD') AS QNA_DATE
+						, VIEW_NUM
+				        , CASE WHEN ANSWER_ID IS NULL THEN '답변대기' ELSE '답변완료' END ANSWER_YN
+				        , QNA_PUBLIC_YN
+				FROM TB_QNA
+				<include refid = "searchQNA"/>
+				ORDER BY QNA_NUM DESC
+
+			)A
+		)B
+		WHERE RNUM BETWEEN #{pagingVO.startRow} AND #{pagingVO.endRow}
+	</select>
+	
+	<select id="selectQNABoard" parameterType="String" resultType="QNABoardVO">
+		SELECT QNA_NUM
+				, WRITER_ID
+				, QNA_TITLE
+				, QNA_CONTENT
+				, QNA_PUBLIC_YN
+				, ANSWER_TITLE
+				, ANSWER_CONTENT
+				, VIEW_NUM
+				, ANSWER_ID
+				, DEL_YN
+				, TO_CHAR(QNA_DATE, 'YYYY.MM.DD') AS QNA_DATE
+				, TO_CHAR(ANSWER_DATE, 'YYYY.MM.DD') AS ANSWER_DATE
+		FROM TB_QNA
+		WHERE DEL_YN = 'N'
+		AND QNA_NUM = #{qnaNum}
+	</select>
+	
+	<select id="selectQNAPass" parameterType="String" resultType="QNABoardVO">
+		SELECT QNA_NUM
+				, QNA_PASS
+		FROM TB_QNA
+		WHERE QNA_NUM = #{qnaNum}
+		AND DEL_YN = 'N'
+	</select>
+	
+	<update id="updateAnswer" parameterType="QNABoardVO">
+		UPDATE TB_QNA
+		SET ANSWER_TITLE = #{answerTitle,jdbcType=VARCHAR}
+			, ANSWER_CONTENT = #{answerContent,jdbcType=CLOB}
+			, ANSWER_ID = #{answerId,jdbcType=VARCHAR}
+			, ANSWER_DATE = SYSDATE
+		WHERE QNA_NUM = #{qnaNum}
+	</update>
+	
+	<insert id="insertQNABoard" parameterType="QNABoardVO">
+		<selectKey resultType="String" keyProperty="qnaNum"  order="BEFORE">
+			SELECT  FN_CREATE_NUM(TO_CHAR(SYSDATE,'YYMMDD'), 'TB_QNA', 'QNA_NUM', UPPER('QNNA'))
+			FROM DUAL
+		</selectKey>
+		INSERT INTO TB_QNA (
+	        QNA_NUM
+	        , WRITER_ID
+	        , QNA_TITLE
+	        , QNA_CONTENT
+	        , QNA_PASS
+	        , QNA_PUBLIC_YN
+	    ) VALUES(
+	        #{qnaNum,jdbcType=VARCHAR}
+	        , #{writerId,jdbcType=VARCHAR}
+	        , #{qnaTitle,jdbcType=VARCHAR}
+	        , #{qnaContent,jdbcType=CLOB}
+	        , #{qnaPass,jdbcType=VARCHAR}
+	        , #{qnaPublicYn,jdbcType=VARCHAR}
+	       )   
+	</insert>
+	
+	<update id="incrementHitQNA" parameterType="String">
+		UPDATE TB_QNA
+		SET
+			VIEW_NUM = VIEW_NUM + 1
+		WHERE QNA_NUM = #{qnaNum}
+	</update>
+	
+	<update id="deleteQNABoard" parameterType="String">
+		UPDATE TB_QNA
+		SET
+			DEL_YN = 'Y'
+		WHERE QNA_NUM = #{qnaNum}
+	</update>
+	
+	<update id="updateQNABoard" parameterType="QNABoardVO">
+		UPDATE TB_QNA
+		SET
+			QNA_TITLE = #{qnaTitle,jdbcType=VARCHAR}
+			, QNA_CONTENT = #{qnaContent,jdbcType=CLOB}
+			, WRITER_ID = #{writerId,jdbcType=VARCHAR}
+			, QNA_PASS = #{qnaPass,jdbcType=VARCHAR}
+			, QNA_PUBLIC_YN = #{qnaPublicYn,jdbcType=VARCHAR}
+		WHERE QNA_NUM = #{qnaNum}
+	</update>
+	
+	<select id="checkMember" parameterType="String" resultType="MemberVO">
+		SELECT MEM_ID
+		FROM TB_MEMBER
+		WHERE MEM_NICK = #{memNick}
+	</select>
+</mapper>

@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.admin.dao.ReportManagementDAO">
+	<sql id="report">
+		WHERE <![CDATA[A.ACCUM_REP >= 10]]>
+		AND A.MEM_ID NOT IN(SELECT MEM_ID FROM TB_DELMEMBER)
+		AND A.MEM_ID NOT IN(SELECT MEM_ID FROM TB_BLACKLIST)
+	</sql>
+	
+	<select id="selectTotalMemRecord" resultType="int">
+		SELECT COUNT(*)
+		FROM (SELECT DISTINCT A.MEM_ID
+		FROM TB_MEMBER A INNER JOIN TB_ROLE_ASSIGNMENT B ON(A.MEM_ID = B.MEM_ID)
+		<include refid="report" />
+		AND B.ROLE_CODE != 'ROLE_EXPERT')
+	</select>
+	<select id="selectMemberReportList" parameterType="PagingVO" resultType="MemberVO">
+        SELECT B.*
+		FROM (SELECT ROWNUM RNUM, A.*
+		        FROM(SELECT DISTINCT 
+		        		A.MEM_ID
+						, A.MEM_NAME
+						, A.MEM_NICK
+						, A.MEM_MAIL
+						, A.MEM_HP
+						, A.ACCUM_REP
+					FROM TB_MEMBER A
+					<include refid="report" />
+		            ) A    
+		        ) B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+	
+	<select id="selectTotalExpRecord" resultType="int">
+		SELECT COUNT(*)
+		FROM TB_MEMBER A 
+        INNER JOIN TB_ROLE_ASSIGNMENT B ON(A.MEM_ID = B.MEM_ID)
+        INNER JOIN TB_EXPERT C ON(A.MEM_ID = C.EXPERT_ID)
+        <include refid="report" />
+		AND B.ROLE_CODE = 'ROLE_EXPERT'
+	</select>
+	<select id="selectExpertReportList" parameterType="PagingVO" resultType="MemberVO">
+        SELECT B.*
+		FROM (SELECT ROWNUM RNUM, A.*
+		        FROM(   SELECT DISTINCT 
+		                    A.EXPERT_ID AS MEM_ID
+		                    , B.MEM_NAME
+							, B.MEM_NICK
+							, B.MEM_MAIL
+							, A.ACCUM_REP
+						FROM TB_EXPERT A  
+	                    INNER JOIN TB_MEMBER B ON(A.EXPERT_ID = B.MEM_ID)
+						WHERE <![CDATA[A.ACCUM_REP >= 10]]>
+						AND A.EXPERT_ID NOT IN(SELECT MEM_ID FROM TB_DELMEMBER)
+						AND A.EXPERT_ID NOT IN(SELECT MEM_ID FROM TB_BLACKLIST)
+	                    AND A.EX_DEL = 'N'
+		            ) A    
+		        ) B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+	
+	<select id="selectTotalCooRecord" resultType="int">
+		SELECT count(*)
+		FROM TB_COOBOARD
+		WHERE <![CDATA[REP_NUM >= 10]]>
+        AND BLIND_YN = 'N'
+        AND DEL_YN = 'N'
+	</select>
+	<select id="selectCooBoardReportList" parameterType="PagingVO" resultType="CooBoardVO">
+	    SELECT B.*
+		FROM (SELECT ROWNUM RNUM, A.*
+		        FROM(SELECT 
+		        		COO_NUM
+						, WRITER_ID
+						, COO_TITLE
+						, TO_CHAR(COO_DATE,'YYYY-MM-DD') AS COO_DATE
+					FROM TB_COOBOARD
+					WHERE <![CDATA[REP_NUM >= 10]]>
+				       AND BLIND_YN = 'N'
+				       AND DEL_YN = 'N'
+		            ) A    
+		        ) B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+
+	<select id="selectTotalFreeRecord" resultType="int">
+		SELECT count(*)
+		FROM TB_FREEBOARD
+		WHERE <![CDATA[REP_NUM >= 10]]>
+        AND BLIND_YN = 'N'
+        AND DEL_YN = 'N'
+	</select>	
+	<select id="selectFreeBoardReportList" resultType="kr.or.ddit.community.free.vo.FreeBoardVO">
+		SELECT B.*
+		FROM (SELECT ROWNUM RNUM, A.*
+		        FROM(SELECT 
+		        		FREE_NUM
+						, WRITER_ID
+						, FREE_TITLE
+						, TO_CHAR(FREE_DATE,'YYYY-MM-DD') AS FREE_DATE
+					FROM TB_FREEBOARD
+					WHERE <![CDATA[REP_NUM >= 10]]>
+				       AND BLIND_YN = 'N'
+				       AND DEL_YN = 'N'
+		            ) A    
+		        ) B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+	
+	<select id="selectTotalReport" resultType="int" parameterType="map">
+		SELECT
+		    COUNT(*)
+		FROM TB_REPORT
+		WHERE TARGET_ID = #{target}
+	</select>	
+	<select id="selectReport" resultType="ReportVO" parameterType="map">
+		SELECT B.*
+		FROM (SELECT ROWNUM RNUM, A.*
+		        FROM(SELECT
+					    REP_NUM,
+					    REPORTER_ID,
+					    TARGET_ID,
+					    TO_CHAR(REP_DATE,'YYYY-MM-DD') AS REP_DATE, 
+					    REP_CONTENT
+					FROM TB_REPORT
+					WHERE TARGET_ID = #{target}
+					ORDER BY 4 DESC
+		            ) A    
+		        ) B
+		WHERE RNUM BETWEEN #{pagingVO.startRow} AND #{pagingVO.endRow}
+	</select>
+	
+	<insert id="insertBlackMember" parameterType="map">
+		INSERT INTO TB_BLACKLIST (
+		    MEM_ID,
+		    BLACK_CONTENT
+		) VALUES (
+		    #{target,jdbcType=VARCHAR},
+		    #{reason,jdbcType=VARCHAR}
+		)
+	</insert>
+	<delete id="deleteExpertRole" parameterType="map">
+		DELETE FROM TB_ROLE_ASSIGNMENT
+		WHERE  MEM_ID = #{target}
+		AND   ROLE_CODE = 'ROLE_EXPERT'
+	</delete>
+	<update id="updateExpDel" parameterType="map">
+		UPDATE TB_EXPERT
+		    SET EX_DEL = 'Y'
+		WHERE EXPERT_ID = #{target}
+	</update>
+	
+	<select id="selectCooWriterId" resultType="String" parameterType="map">
+		SELECT WRITER_ID
+		FROM TB_COOBOARD
+		WHERE COO_NUM = #{target}
+	</select>
+	<update id="updateCooBlind" parameterType="map">
+		UPDATE TB_COOBOARD
+		    SET BLIND_YN = 'Y'
+		WHERE COO_NUM = #{target}
+	</update>
+	<select id="selectFreeWriterId" resultType="String" parameterType="map">
+		SELECT WRITER_ID
+		FROM TB_FREEBOARD
+		WHERE FREE_NUM = #{target}
+	</select>
+	<update id="updateFreeBlind" parameterType="map">
+		UPDATE TB_FREEBOARD
+		   SET BLIND_YN = 'Y'
+		WHERE FREE_NUM = #{target}
+	</update>
+</mapper>

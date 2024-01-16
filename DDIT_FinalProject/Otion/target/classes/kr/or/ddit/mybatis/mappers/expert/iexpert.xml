@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.expert.dao.IexpertDAO">
+
+   <sql id="stateFrag">
+	       	<if test="simpleCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+		       AND
+		       <choose>
+		       	<when test="simpleCondition.searchType eq 'myExpert.comCodeNm'">
+		       		 INSTR(COM_CODE_NM, #{simpleCondition.searchWord}) > 0 
+		       	</when>
+		       	<otherwise>
+		       	    (
+			    	 INSTR(COM_CODE_NM, #{simpleCondition.searchWord}) > 0
+		       		 )
+		       	</otherwise>
+		       </choose>
+		     </if>
+   </sql>
+	<select id="selectTotalprodRecord" parameterType="PagingVO" resultType="int">
+	    SELECT COUNT(*)
+          FROM TB_EXP_PROD
+        WHERE EXPERT_ID = #{detailCondition.expertId}
+	</select>
+	<select id="selectTotalRequest" parameterType="PagingVO" resultType="int">
+	   SELECT COUNT(*)
+         FROM TB_MYEXPERT A LEFT OUTER JOIN TB_EXP_PROD B ON(A.EPROD_NUM=B.EPROD_NUM)
+        WHERE b.EXPERT_ID = #{detailCondition.expertId}
+	</select>
+
+	<select id="selectMyeprodList" parameterType="PagingVO" resultType="EProdVO">
+		 SELECT B.*
+    		  FROM (
+		         SELECT ROWNUM RNUM, A.*
+		           FROM (
+		            SELECT
+						EPROD_NUM
+					    ,EXPERT_ID
+					    ,(CASE
+	                      WHEN LENGTH(EPROD_NAME) > 20 
+	                      THEN SUBSTR(EPROD_NAME,1,20)||'...' 
+	                      ELSE EPROD_NAME
+	                      END) AS EPROD_NAME
+					    ,EPROD_SUMMARY
+					    ,EPROD_TAG
+					    ,REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR(EPROD_PRICE)), '(\d{3})','\1,')), '^,','') AS EPROD_PRICE
+					    ,TO_CHAR(EPROD_DATE, 'YYYY-MM-DD') EPROD_DATE
+					    ,ACCUM_NUM
+					    ,EPROD_LANG_CODE
+					    ,EPROD_DEL
+		            FROM TB_EXP_PROD
+		           WHERE EPROD_DEL = 'N' AND EXPERT_ID = #{detailCondition.expertId}
+		            ORDER BY ROWID DESC
+                ) A
+           ) B
+      WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+		
+		
+	</select>
+	
+	<insert id="insertEprod" parameterType="EProdVO">
+	INSERT INTO TB_EXP_PROD (
+			    EPROD_NUM,
+			    EXPERT_ID,
+			    EPROD_NAME,
+			    EPROD_SUMMARY,
+			    EPROD_TAG,
+			    EPROD_PRICE,
+			    EPROD_DATE
+		) VALUES (
+		    fn_create_num(to_char(sysdate,'yymmdd'), 'tb_exp_prod', 'eprod_num', UPPER('epro'))
+		    , #{expertId,jdbcType=VARCHAR}
+		    , #{eprodName,jdbcType=VARCHAR}
+		    , #{eprodSummary,jdbcType=CLOB}
+		    , #{eprodTag,jdbcType=VARCHAR}
+		    , #{eprodPrice}
+		    , SYSDATE
+		)
+
+	</insert>
+	
+	<update id="updateProfile" parameterType="ExpertVO">
+		UPDATE TB_EXPERT
+	    SET
+		  PRESENTATION = #{presentation,jdbcType=VARCHAR}
+		, ASSUME = #{assume,jdbcType=VARCHAR}
+		, EX_LINK = #{exLink,jdbcType=VARCHAR}
+		, EX_TAG = #{exTag,jdbcType=VARCHAR}
+	WHERE EXPERT_ID=#{expertId,jdbcType=VARCHAR}
+	  
+	</update>
+	
+	<update id="updateProd" parameterType="EProdVO">
+	UPDATE TB_EXP_PROD 
+	   SET
+			 EPROD_NAME=#{eprodName,jdbcType=VARCHAR}
+		   , EPROD_SUMMARY=#{eprodSummary,jdbcType=CLOB}
+		   , EPROD_TAG=#{eprodTag,jdbcType=VARCHAR}
+		   , EPROD_PRICE=#{eprodPrice}
+		   , EPROD_DATE =SYSDATE
+	WHERE EPROD_NUM =#{eprodNum, jdbcType=VARCHAR}
+	</update>
+	
+	<update id="deleteProd" parameterType="EProdVO">
+			UPDATE TB_EXP_PROD 
+	  		   SET
+				  EPROD_DEL = 'Y'
+			WHERE EPROD_NUM =#{eprodNum, jdbcType=VARCHAR}
+			  AND EXPERT_ID = #{expertId,jdbcType=VARCHAR}
+	</update>
+	<update id="deleteExpert" parameterType="ExpertVO">
+		UPDATE TB_EXPERT
+		   SET 
+		       EX_DEL ='Y'
+		 WHERE EXPERT_ID =#{expertId,jdbcType=VARCHAR}
+	</update>
+	<update id="updateProfileImg" parameterType="ExpertVO">
+		UPDATE TB_EXPERT
+		   SET 
+		       PROFILE_IMG = #{profileImg}
+		 WHERE EXPERT_ID =#{expertId,jdbcType=VARCHAR}
+	</update>
+	
+	<select id="selectRequestList" parameterType="PagingVO" resultType="MyExpertVO">
+       SELECT E.*
+    		  FROM (
+		         SELECT ROWNUM RNUM, D.*
+		           FROM (
+                         SELECT
+                            A.MY_EPROD,
+                            A.BUYER_ID,
+                            A.EPROD_NUM,
+                            A.PROGRESS_CODE,
+                            A.EPROD_NAME,
+                            A.EPROD_SUMMARY,
+                            REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR(A.EPROD_PRICE)), '(\d{3})','\1,')), '^,','') AS EPROD_PRICE,
+                            B.EXPERT_ID,
+                            C.COM_CODE_NM, 
+                            TO_CHAR(EPAY_DATE, 'YYYY-MM-DD') EPAY_DATE
+                        FROM TB_MYEXPERT A LEFT OUTER JOIN TB_EXP_PROD B ON(A.EPROD_NUM=B.EPROD_NUM)
+                                           LEFT OUTER JOIN TB_COM_CODE C ON(A.PROGRESS_CODE=C.COM_CODE)
+                                           LEFT OUTER JOIN TB_EPROD_PAYMENT F ON(A.MY_EPROD=F.MY_EPROD)
+                      WHERE B.EXPERT_ID = #{detailCondition.expertId}
+                       <include refid="stateFrag" />
+                      ORDER BY A.MY_EPROD
+                ) D
+           ) E
+      WHERE E.RNUM BETWEEN #{startRow} AND #{endRow}
+        
+	
+	</select>
+	<update id="updateProgress" parameterType="MyExpertVO" >
+	  UPDATE TB_MYEXPERT
+         SET
+       	     PROGRESS_CODE = #{progressCode,jdbcType=VARCHAR}
+       WHERE MY_EPROD = #{myEprod,jdbcType=VARCHAR}
+ 	</update>
+ 	
+ 	<select id="selectExpertRevenue" parameterType="String" resultType="ExpertPaymentVO">
+		SELECT TO_CHAR(EPAY_DATE) AS EPAY_DATE ,
+  REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR(A.AMOUNT)), '(\d{3})','\1,')), '^,','') AS AMOUNT ,
+		 C.EPROD_NAME ,
+		 C.EPROD_NUM ,
+		 B.BUYER_ID , 
+  REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR(SUM(A.AMOUNT) OVER (ORDER BY A.ROWID))), '(\d{3})','\1,')), '^,','')  AS ACCUM_REVENUE  
+		FROM TB_EPROD_PAYMENT A INNER JOIN TB_MYEXPERT B ON(A.MY_EPROD=B.MY_EPROD)
+							    INNER JOIN TB_EXP_PROD C ON(B.EPROD_NUM=C.EPROD_NUM)
+	   WHERE EPAY_NUM NOT IN(SELECT EPAY_NUM FROM TB_EPROD_REFUND)
+		AND C.EXPERT_ID=#{expertId}
+		AND A.EPAY_NUM NOT IN(SELECT EPAY_NUM FROM TB_EPROD_REFUND)
+ 	</select>
+ 	
+ 	<select id="selectRefundReason" resultType="ComCodeVO">
+ 		SELECT COM_CODE,
+       		   COM_CODE_NM
+  		  FROM TB_COM_CODE
+         WHERE COM_CODE_GRP='REF_REASON'
+ 	</select>
+ 	
+ 	<insert id="insertRefund" parameterType="kr.or.ddit.expert.vo.EprodRefundVO">
+	  INSERT INTO TB_EPROD_REFUND (
+				    REFUND_NUM,
+				    REFUND_REASON_CODE,
+				    REFUND_DATE,
+				    EPAY_NUM
+				) VALUES (
+				     fn_create_num(TO_CHAR(SYSDATE,'yymmdd'), 'TB_EPROD_REFUND', 'REFUND_NUM', UPPER('refu'))
+				    , #{refundReasonCode,jdbcType=VARCHAR}
+				    , SYSDATE
+				    , (SELECT EPAY_NUM
+					    FROM TB_EPROD_PAYMENT
+					WHERE MY_EPROD=#{myEprod,jdbcType=VARCHAR})
+				)
+			  
+ 	</insert>
+ 	
+ 	<delete id="deleteExpertRole" parameterType="String">
+ 		DELETE FROM TB_ROLE_ASSIGNMENT
+	      WHERE MEM_ID=#{memId,jdbcType=VARCHAR}
+	        AND ROLE_CODE='ROLE_EXPERT'
+ 	</delete>
+ 	
+ 	<update id="updateDelExpPord" parameterType="String">
+ 	UPDATE TB_EXP_PROD
+	  SET
+	    EPROD_DEL ='Y'
+	WHERE EXPERT_ID=#{expertId,jdbcType=VARCHAR}
+ 	</update>
+
+	<select id="selectMonthIncome" parameterType="ExpertPaymentVO"
+		resultType="ExpertPaymentVO">
+		SELECT TO_CHAR(EPAY_DATE) AS EPAY_DATE, 
+			   AMOUNT, 
+			   C.EPROD_NAME, 
+			   C.EPROD_NUM,
+			   B.BUYER_ID,
+			   SUM(A.AMOUNT) OVER (ORDER BY A.ROWID) AS ACCUM_REVENUE 
+		  FROM TB_EPROD_PAYMENT A INNER JOIN TB_MYEXPERT B ON(A.MY_EPROD=B.MY_EPROD)
+		                          INNER JOIN TB_EXP_PROD C ON(B.EPROD_NUM=C.EPROD_NUM)
+		 WHERE EPAY_NUM NOT IN(SELECT EPAY_NUM
+		 						 FROM TB_EPROD_REFUND)
+		  AND TO_CHAR(EPAY_DATE, 'YYYY') = #{year}
+		  AND TO_CHAR(EPAY_DATE, 'MM') = #{month}
+		  AND C.EXPERT_ID=#{expertId}
+		  AND A.EPAY_NUM NOT IN(SELECT EPAY_NUM FROM TB_EPROD_REFUND)
+	</select>
+	
+	<select id="selectRevenueForExcel" resultType="ExpertPaymentVO" parameterType="ExpertPaymentVO">
+	SELECT TO_CHAR(EPAY_DATE) AS EPAY_DATE, 
+			   AMOUNT, 
+			   C.EPROD_NAME, 
+			   C.EPROD_NUM,
+			   B.BUYER_ID,
+			   SUM(A.AMOUNT) OVER (ORDER BY A.ROWID) AS ACCUM_REVENUE 
+		  FROM TB_EPROD_PAYMENT A INNER JOIN TB_MYEXPERT B ON(A.MY_EPROD=B.MY_EPROD)
+		                          INNER JOIN TB_EXP_PROD C ON(B.EPROD_NUM=C.EPROD_NUM)
+		 WHERE EPAY_NUM NOT IN(SELECT EPAY_NUM
+		 						 FROM TB_EPROD_REFUND)
+		  AND TO_CHAR(EPAY_DATE, 'YYYY') = #{year}
+		  AND C.EXPERT_ID=#{expertId}
+		  AND A.EPAY_NUM NOT IN(SELECT EPAY_NUM FROM TB_EPROD_REFUND)
+	</select>
+	
+	<select id="revenueEincomeList" parameterType="RevenueVO" resultType="RevenueVO">
+select
+(SELECT NVL(SUM(AMOUNT*0.95), 0)
+FROM TB_EPROD_PAYMENT A LEFT OUTER JOIN TB_MYEXPERT B ON(A.MY_EPROD=B.MY_EPROD) LEFT OUTER JOIN TB_EXP_PROD C ON(B.EPROD_NUM=C.EPROD_NUM)
+WHERE EPAY_NUM NOT IN(SELECT EPAY_NUM FROM TB_EPROD_REFUND)
+AND C.EXPERT_ID=#{expertId}
+AND to_char(A.EPAY_DATE, 'MM') = '01'
+AND to_char(EPAY_DATE, 'YYYY') = #{year}
+) AS EPROD_MONTH01
+,
+(SELECT NVL(SUM(AMOUNT*0.95), 0)
+FROM TB_EPROD_PAYMENT A LEFT OUTER JOIN TB_MYEXPERT B ON(A.MY_EPROD=B.MY_EPROD) LEFT OUTER JOIN TB_EXP_PROD C ON(B.EPROD_NUM=C.EPROD_NUM)
+WHERE EPAY_NUM NOT IN(SELECT EPAY_NUM FROM TB_EPROD_REFUND)
+AND C.EXPERT_ID=#{expertId}
+AND to_char(EPAY_DATE, 'MM') = '02'
+AND to_char(EPAY_DATE, 'YYYY') = #{year}) AS EPROD_MONTH02
+,
+(SELECT NVL(SUM(AMOUNT*0.95), 0)
+FROM TB_EPROD_PAYMENT A LEFT OUTER JOIN TB_MYEXPERT B ON(A.MY_EPROD=B.MY_EPROD) LEFT OUTER JOIN TB_EXP_PROD C ON(B.EPROD_NUM=C.EPROD_NUM)
+WHERE EPAY_NUM NOT IN(SELECT EPAY_NUM FROM TB_EPROD_REFUND)
+AND C.EXPERT_ID=#{expertId}
+AND to_char(EPAY_DATE, 'MM') = '03'
+AND to_char(EPAY_DATE, 'YYYY') = #{year}) AS EPROD_MONTH03
+,
+(SELECT NVL(SUM(AMOUNT*0.95), 0)
+FROM TB_EPROD_PAYMENT A LEFT OUTER JOIN TB_MYEXPERT B ON(A.MY_EPROD=B.MY_EPROD) LEFT OUTER JOIN TB_EXP_PROD C ON(B.EPROD_NUM=C.EPROD_NUM)
+WHERE EPAY_NUM NOT IN(SELECT EPAY_NUM FROM TB_EPROD_REFUND)
+AND C.EXPERT_ID=#{expertId}
+AND to_char(EPAY_DATE, 'MM') = '04'
+AND to_char(EPAY_DATE, 'YYYY') = #{year}) AS EPROD_MONTH04
+,
+(SELECT NVL(SUM(AMOUNT*0.95), 0)
+FROM TB_EPROD_PAYMENT A LEFT OUTER JOIN TB_MYEXPERT B ON(A.MY_EPROD=B.MY_EPROD) LEFT OUTER JOIN TB_EXP_PROD C ON(B.EPROD_NUM=C.EPROD_NUM)
+WHERE EPAY_NUM NOT IN(SELECT EPAY_NUM FROM TB_EPROD_REFUND)
+AND C.EXPERT_ID=#{expertId}
+AND to_char(EPAY_DATE, 'MM') = '05'
+AND to_char(EPAY_DATE, 'YYYY') = #{year}) AS EPROD_MONTH05
+,
+(SELECT NVL(SUM(AMOUNT*0.95), 0)
+FROM TB_EPROD_PAYMENT A LEFT OUTER JOIN TB_MYEXPERT B ON(A.MY_EPROD=B.MY_EPROD) LEFT OUTER JOIN TB_EXP_PROD C ON(B.EPROD_NUM=C.EPROD_NUM)
+WHERE EPAY_NUM NOT IN(SELECT EPAY_NUM FROM TB_EPROD_REFUND)
+AND C.EXPERT_ID=#{expertId}
+AND to_char(EPAY_DATE, 'MM') = '06'
+AND to_char(EPAY_DATE, 'YYYY') = #{year}) AS EPROD_MONTH06
+,
+(SELECT NVL(SUM(AMOUNT*0.95), 0)
+FROM TB_EPROD_PAYMENT A LEFT OUTER JOIN TB_MYEXPERT B ON(A.MY_EPROD=B.MY_EPROD) LEFT OUTER JOIN TB_EXP_PROD C ON(B.EPROD_NUM=C.EPROD_NUM)
+WHERE EPAY_NUM NOT IN(SELECT EPAY_NUM FROM TB_EPROD_REFUND)
+AND C.EXPERT_ID=#{expertId}
+AND to_char(EPAY_DATE, 'MM') = '07'
+AND to_char(EPAY_DATE, 'YYYY') = #{year}) AS EPROD_MONTH07
+,
+(SELECT NVL(SUM(AMOUNT*0.95), 0)
+FROM TB_EPROD_PAYMENT A LEFT OUTER JOIN TB_MYEXPERT B ON(A.MY_EPROD=B.MY_EPROD) LEFT OUTER JOIN TB_EXP_PROD C ON(B.EPROD_NUM=C.EPROD_NUM)
+WHERE EPAY_NUM NOT IN(SELECT EPAY_NUM FROM TB_EPROD_REFUND)
+AND C.EXPERT_ID=#{expertId}
+AND to_char(EPAY_DATE, 'MM') = '08'
+AND to_char(EPAY_DATE, 'YYYY') = #{year}) AS EPROD_MONTH08
+,
+(SELECT NVL(SUM(AMOUNT*0.95), 0)
+FROM TB_EPROD_PAYMENT A LEFT OUTER JOIN TB_MYEXPERT B ON(A.MY_EPROD=B.MY_EPROD) LEFT OUTER JOIN TB_EXP_PROD C ON(B.EPROD_NUM=C.EPROD_NUM)
+WHERE EPAY_NUM NOT IN(SELECT EPAY_NUM FROM TB_EPROD_REFUND)
+AND C.EXPERT_ID=#{expertId}
+AND to_char(EPAY_DATE, 'MM') = '09'
+AND to_char(EPAY_DATE, 'YYYY') = #{year}) AS EPROD_MONTH09
+,
+(SELECT NVL(SUM(AMOUNT*0.95), 0)
+FROM TB_EPROD_PAYMENT A LEFT OUTER JOIN TB_MYEXPERT B ON(A.MY_EPROD=B.MY_EPROD) LEFT OUTER JOIN TB_EXP_PROD C ON(B.EPROD_NUM=C.EPROD_NUM)
+WHERE EPAY_NUM NOT IN(SELECT EPAY_NUM FROM TB_EPROD_REFUND)
+AND C.EXPERT_ID=#{expertId}
+AND to_char(EPAY_DATE, 'MM') = '10'
+AND to_char(EPAY_DATE, 'YYYY') = #{year}) AS EPROD_MONTH10
+,
+(SELECT NVL(SUM(AMOUNT*0.95), 0)
+FROM TB_EPROD_PAYMENT A LEFT OUTER JOIN TB_MYEXPERT B ON(A.MY_EPROD=B.MY_EPROD) LEFT OUTER JOIN TB_EXP_PROD C ON(B.EPROD_NUM=C.EPROD_NUM)
+WHERE EPAY_NUM NOT IN(SELECT EPAY_NUM FROM TB_EPROD_REFUND)
+AND C.EXPERT_ID=#{expertId}
+AND to_char(EPAY_DATE, 'MM') = '11'
+AND to_char(EPAY_DATE, 'YYYY') = #{year}) AS EPROD_MONTH11
+,
+(SELECT NVL(SUM(AMOUNT*0.95), 0)
+FROM TB_EPROD_PAYMENT A LEFT OUTER JOIN TB_MYEXPERT B ON(A.MY_EPROD=B.MY_EPROD) LEFT OUTER JOIN TB_EXP_PROD C ON(B.EPROD_NUM=C.EPROD_NUM)
+WHERE EPAY_NUM NOT IN(SELECT EPAY_NUM FROM TB_EPROD_REFUND)
+AND C.EXPERT_ID=#{expertId}
+AND to_char(EPAY_DATE, 'MM') = '12'
+AND to_char(EPAY_DATE, 'YYYY') = #{year}) AS EPROD_MONTH12
+from DUAL
+	</select>
+</mapper>
+

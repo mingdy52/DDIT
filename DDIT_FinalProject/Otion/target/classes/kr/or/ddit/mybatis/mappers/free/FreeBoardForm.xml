@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--  [[개정이력(Modification Information)]]       -->
+<!--  수정일        수정자     수정내용               -->
+<!--  ==========   ======    ==============        -->
+<!--  2022. 8. 17.     서효림    최초작성               -->
+<!--  Copyright (c) 2022 by DDIT All right reserved -->
+
+<mapper namespace="kr.or.ddit.community.free.dao.FreeBoardDAO">
+	<sql id="searchFrag">
+		WHERE DEL_YN = 'N'
+		<trim prefix="AND">
+			<if test="pagingVO.simpleCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(pagingVO.simpleCondition.searchWord)">
+				<choose>
+					<when test="pagingVO.simpleCondition.searchType eq 'id'">
+						INSTR(WRITER_ID, #{pagingVO.simpleCondition.searchWord}) > 0
+					</when>
+					<when test="pagingVO.simpleCondition.searchType eq 'title'">
+						INSTR(FREE_TITLE, #{pagingVO.simpleCondition.searchWord}) > 0
+					</when>
+					<when test="pagingVO.simpleCondition.searchType eq 'content'">
+						INSTR(FREE_CONTENT, #{pagingVO.simpleCondition.searchWord}) > 0
+					</when>
+					<otherwise>
+						(
+							   INSTR(WRITER_ID, #{pagingVO.simpleCondition.searchWord}) > 0
+						 	OR INSTR(FREE_TITLE, #{pagingVO.simpleCondition.searchWord}) > 0
+						 	OR INSTR(FREE_CONTENT, #{pagingVO.simpleCondition.searchWord}) > 0
+						)
+					</otherwise>
+				</choose>
+			</if>
+		</trim>
+	</sql>
+	<select id="selectBoardCount" parameterType="map" resultType="int">
+		SELECT COUNT(*)
+		FROM TB_FREEBOARD
+		<include refid="searchFrag" />
+	</select>	
+	<select id="selectFreeBoardList" parameterType="map" resultType="FreeBoardVO">
+		SELECT B.*
+		FROM(
+			SELECT ROWNUM RNUM, A.*
+			FROM (
+				SELECT FREE_NUM
+					 , FREE_TITLE
+					 , WRITER_ID
+					 , VIEW_NUM
+					 , TO_CHAR(FREE_DATE, 'YYYY-MM-DD') FREE_DATE
+				FROM TB_FREEBOARD
+				<include refid = "searchFrag"/> 
+				ORDER BY FREE_NUM DESC
+			)A
+		)B
+		WHERE RNUM BETWEEN #{pagingVO.startRow} AND #{pagingVO.endRow}
+	</select>
+	<insert id="insertFreeBoard" parameterType="FreeBoardVO">
+		<selectKey resultType="String" keyProperty="freeNum"   order="BEFORE">
+			SELECT  FN_CREATE_NUM(TO_CHAR(SYSDATE,'YYMMDD'), 'TB_FREEBOARD', 'FREE_NUM', UPPER('FREE'))
+			FROM DUAL
+		</selectKey>
+		INSERT INTO TB_FREEBOARD (
+			FREE_NUM
+			, WRITER_ID
+			, FREE_TITLE
+			, FREE_CONTENT
+			, FREE_DATE
+			, REP_NUM
+			, VIEW_NUM
+			, BLIND_YN
+			, DEL_YN
+		) VALUES(
+			#{freeNum,jdbcType=VARCHAR}
+			, #{writerId,jdbcType=VARCHAR}
+			, #{freeTitle,jdbcType=VARCHAR}
+			, #{freeContent,jdbcType=CLOB}
+			, SYSDATE
+			, 0
+			, 0
+			, 'N'
+			, 'N'
+		)
+	</insert>
+	
+	<resultMap type="FreeBoardVO" id="freeBoardMap" autoMapping="true">
+		<id property="freeNum" column="FREE_NUM"/>
+		<collection property="attatchList" ofType="AttatchVO" autoMapping="true"/>
+	</resultMap>
+	<select id="selectFreeBoard" parameterType="String" resultMap="freeBoardMap">
+		SELECT
+			FREE_NUM
+			, WRITER_ID
+			, FREE_TITLE
+			, FREE_CONTENT
+			, FREE_DATE
+			, REP_NUM
+			, VIEW_NUM
+			, BLIND_YN
+			, B.ATTATCH_NUM
+			, DEL_YN
+			, ATTATCH_ORDER
+			, ATTATCH_PLACE
+			, FILE_PATH
+			, ORIGIN_NM
+			, SAVE_NM
+			, ATTATCH_TYPE
+			, ATTATCH_SIZE
+			, DOWN_NUMBER
+			, ATTATCH_DATE
+			, UPLOADER_ID
+					
+		FROM TB_FREEBOARD A	
+		LEFT OUTER JOIN TB_ATTATCH B ON (A.FREE_NUM = B.ATTATCH_PLACE)
+		WHERE A.FREE_NUM = #{freeNum}
+		AND DEL_YN = 'N'
+
+	</select>
+	<update id="incrementHit" parameterType="String">
+		UPDATE TB_FREEBOARD
+		SET
+			VIEW_NUM = VIEW_NUM + 1
+		WHERE FREE_NUM = #{freeNum}
+	</update>
+	
+	<update id="deleteBoard" parameterType="String">
+		UPDATE TB_FREEBOARD
+		SET DEL_YN = 'Y'
+		WHERE FREE_NUM = #{freeNum}
+	</update>
+	
+	<update id="updateBoard" parameterType="FreeBoardVO">
+		UPDATE TB_FREEBOARD
+		SET
+			FREE_TITLE = #{freeTitle,jdbcType=VARCHAR}
+			, FREE_CONTENT = #{freeContent,jdbcType=CLOB}
+		WHERE FREE_NUM = #{freeNum}
+	</update>
+</mapper>
+
+
+
+

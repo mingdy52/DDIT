@@ -1,0 +1,380 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--  [[개정이력(Modification Information)]]       -->
+<!--  수정일                수정자     수정내용             			  -->
+<!--  ==========   ======    ==============        -->
+<!--  2022. 8. 5.   심민경         최초작성             		  -->
+<!--  Copyright (c) 2022 by DDIT All right reserved -->
+<mapper namespace="kr.or.ddit.admin.dao.MemberManagementDAO">
+
+	<sql id="memberSearchFrag">
+	 	WHERE A.MEM_ID NOT IN (SELECT A.MEM_ID 
+				              FROM TB_MEMBER A
+				              INNER JOIN TB_DELMEMBER B ON(A.MEM_ID = B.MEM_ID))
+       	<trim prefix="AND">
+        	<if test="pagingVO.simpleCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(pagingVO.simpleCondition.searchType)">
+				<choose>
+					<when test="pagingVO.simpleCondition.searchType eq 'id'">
+						INSTR(A.MEM_ID, #{pagingVO.simpleCondition.searchWord}) > 0
+					</when>
+					<when test="pagingVO.simpleCondition.searchType eq 'name'">
+						INSTR(A.MEM_NAME, #{pagingVO.simpleCondition.searchWord}) > 0
+					</when>
+					<when test="pagingVO.simpleCondition.searchType eq 'nick'">
+						INSTR(A.MEM_NICK, #{pagingVO.simpleCondition.searchWord}) > 0
+					</when>
+					<when test="pagingVO.simpleCondition.searchType eq 'mail'">
+						INSTR(A.MEM_MAIL, #{pagingVO.simpleCondition.searchWord}) > 0
+					</when>
+					<when test="pagingVO.simpleCondition.searchType eq 'all'">
+			        	(
+				         	INSTR(A.MEM_ID, #{pagingVO.simpleCondition.searchWord}) > 0
+				        	OR 
+				        	INSTR(A.MEM_NAME, #{pagingVO.simpleCondition.searchWord}) > 0
+				        	OR 
+				        	INSTR(A.MEM_NICK, #{pagingVO.simpleCondition.searchWord}) > 0
+				        	OR 
+				        	INSTR(A.MEM_MAIL, #{pagingVO.simpleCondition.searchWord}) > 0
+			        	)
+					</when>
+				</choose>
+        	</if>
+       	</trim>
+	</sql>
+	
+	<select id="selectTotalRoleRecord" resultType="int" parameterType="map">
+		SELECT COUNT(*)
+		FROM TB_MEMBER A
+		INNER JOIN TB_ROLE_ASSIGNMENT B ON(A.MEM_ID = B.MEM_ID)
+		<include refid="memberSearchFrag" />
+		AND B.ROLE_CODE=#{roleGoup}
+	</select>
+	
+	<select id="selectRoleMemberList" resultType="MemberVO" parameterType="PagingVO">
+		SELECT B.*
+		FROM (SELECT ROWNUM RNUM, A.*
+		        FROM(SELECT 
+					       DISTINCT A.MEM_ID
+							, A.MEM_PASS
+							, A.MEM_NAME
+							, A.MEM_NICK
+							, A.MEM_MAIL
+							, A.MEM_HP
+							, A.ACCUM_REP
+						FROM TB_MEMBER A
+						INNER JOIN TB_ROLE_ASSIGNMENT B ON(A.MEM_ID = B.MEM_ID)
+						<include refid="memberSearchFrag" />
+						AND B.ROLE_CODE=#{roleGoup}
+						ORDER BY MEM_NAME
+		            ) A    
+		        ) B
+		WHERE RNUM BETWEEN #{pagingVO.startRow} AND #{pagingVO.endRow}
+	</select>
+	
+	<select id="selectTotalBlackRecord" resultType="int" parameterType="map">
+		SELECT count(*)
+		FROM TB_MEMBER A 
+		INNER JOIN TB_BLACKLIST B ON (A.MEM_ID = B.MEM_ID)
+		<include refid="memberSearchFrag" />
+	</select>
+	
+	<select id="selectBlackList" resultType="MemberVO" parameterType="PagingVO">
+		SELECT B.*
+		FROM (SELECT ROWNUM RNUM, A.*
+		        FROM(SELECT DISTINCT A.MEM_ID
+							, A.MEM_PASS
+							, A.MEM_NAME
+							, A.MEM_NICK
+							, A.MEM_MAIL
+                            , A.ACCUM_REP
+                            , B.BLACK_CONTENT
+                            , TO_CHAR(B.BLACK_DATE, 'YYYY.MM.DD') AS BLACK_DATE
+						FROM TB_MEMBER A 
+						INNER JOIN TB_BLACKLIST B ON (A.MEM_ID = B.MEM_ID)
+						<include refid="memberSearchFrag" />
+		            ) A    
+		        ) B
+		WHERE RNUM BETWEEN #{pagingVO.startRow} AND #{pagingVO.endRow}
+	</select>
+	
+	<resultMap type="MemberVO" id="memberMap" autoMapping="true">
+		<id property="memId" column="MEM_ID"/>
+		<collection property="roleList" ofType="RoleVO">
+			<id property="roleName" column="ROLE_NAME"/>
+		</collection>
+			</resultMap>
+	<select id="selectMember" parameterType="String" resultMap="memberMap">
+		SELECT 
+            A.MEM_ID
+            , A.MEM_PASS
+            , A.MEM_NAME
+            , A.MEM_NICK
+            , A.MEM_MAIL
+            , A.MEM_HP
+            , A.ACCUM_REP
+            , C.ROLE_NAME
+		FROM TB_MEMBER A 
+        INNER JOIN TB_ROLE_ASSIGNMENT B ON(A.MEM_ID = B.MEM_ID)
+        INNER JOIN TB_ROLE_GROUP C ON(B.ROLE_CODE = C.ROLE_CODE)
+		WHERE A.MEM_ID = #{memId}
+
+	</select>
+	
+	<select id="selectTotalReportRecord" resultType="int" parameterType="map">
+		SELECT COUNT(*)
+		FROM TB_REPORT
+		WHERE TARGET_ID = #{memId}
+	</select>
+	<select id="selectReportList" parameterType="map" resultType="ReportVO">
+	    SELECT B.*
+		FROM (SELECT ROWNUM RNUM, A.*
+		        FROM(SELECT REP_NUM
+						, REPORTER_ID
+						, TARGET_ID 	
+						, TO_CHAR(REP_DATE, 'YYYY-MM-DD') AS REP_DATE
+						, REP_CONTENT
+				    FROM TB_REPORT B
+				    WHERE B.TARGET_ID = #{memId}
+				     ) A    
+		        ) B
+		WHERE RNUM BETWEEN #{pagingVO.startRow} AND #{pagingVO.endRow}
+	</select>
+	
+	
+	<select id="selectTotalWorkPayRecord" resultType="int" parameterType="MemberVO">
+		SELECT COUNT(*)
+		FROM TB_WORK_PAYMENT A INNER JOIN TB_PROJECT B ON(A.PJ_ID = B.PJ_ID)
+		WHERE B.PJ_CREATOR_ID = #{memId}
+	</select>
+	<select id="selectWorkPayList" parameterType="map" resultType="WorkPaymentVO">
+	    SELECT B.*
+		FROM (SELECT ROWNUM RNUM, A.*
+		        FROM(SELECT B.PJ_CREATOR_ID, D.CPROD_NAME 
+					    , C.WPAY_NUM
+						, C.CPROD_NUM
+						, C.PJ_ID
+						, C.WPAY_DATE
+						, REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR(C.WPAY_AMOUNT)), '(\d{3})','\1,')), '^,','') AS WPAY_AMOUNT
+						, TO_CHAR(C.WPAY_END,'YYYY-MM-DD') AS WPAY_END
+						, C.WPAY_METHOD_CODE
+						, C.WPAY_YN
+						, F.COM_CODE_NM AS WCOM_NM
+					    FROM TB_PROJECT B
+					    INNER JOIN TB_WORK_PAYMENT C ON(B.PJ_ID = C.PJ_ID)
+					    INNER JOIN TB_COO_PROD D ON(C.CPROD_NUM = D.CPROD_NUM)
+					    INNER JOIN TB_COM_CODE F ON(F.COM_CODE = C.WPAY_METHOD_CODE)
+					    WHERE B.PJ_CREATOR_ID  = #{memId}
+						) A    
+		      ) B
+		WHERE RNUM BETWEEN #{pagingVO.startRow} AND #{pagingVO.endRow}
+	</select>
+	
+	
+	<select id="selectTotalExpertPayRecord" resultType="int" parameterType="MemberVO">
+		SELECT COUNT(*)
+		FROM TB_EPROD_PAYMENT A INNER JOIN TB_MYEXPERT B ON(A.MY_EPROD = B.MY_EPROD)
+		WHERE B.BUYER_ID = #{memId}
+	</select>
+	<select id="selectExpertPayList" parameterType="map" resultType="ExpertPaymentVO">
+		SELECT B.*
+		FROM (SELECT ROWNUM RNUM, A.*
+		        FROM(SELECT B.BUYER_ID
+						    , C.EPAY_NUM
+						    , C.MY_EPROD
+						    , REGEXP_REPLACE(REVERSE(REGEXP_REPLACE(REVERSE(TO_CHAR(C.AMOUNT)), '(\d{3})','\1,')), '^,','') AS AMOUNT
+						    , C.EPAY_DATE
+						    , C.EPAY_METHOD_CODE
+						    , C.EPAY_YN
+						    , B.EPROD_NAME, D.COM_CODE_NM AS ECOM_NM
+							FROM TB_MYEXPERT B
+							INNER JOIN TB_EPROD_PAYMENT C ON(B.MY_EPROD = C.MY_EPROD)
+							INNER JOIN TB_COM_CODE D ON(D.COM_CODE = C.EPAY_METHOD_CODE)
+							WHERE B.BUYER_ID = #{memId}
+						     ) A    
+		        ) B
+		WHERE RNUM BETWEEN #{pagingVO.startRow} AND #{pagingVO.endRow}
+	</select>
+	
+	<select id="selectTotalExpertRefundRecord" resultType="int" parameterType="MemberVO">
+		SELECT COUNT(*)
+		FROM TB_EPROD_PAYMENT A 
+		INNER JOIN TB_EPROD_PAYMENT B ON(A.EPAY_NUM = B.EPAY_NUM)
+		INNER JOIN TB_MYEXPERT C ON(B.MY_EPROD = C.MY_EPROD)
+		WHERE C.BUYER_ID = #{memId}
+	</select>
+	<select id="selectExpertRefundList" parameterType="map" resultType="ExpertRefundVO">
+		SELECT B.*
+		FROM (SELECT ROWNUM RNUM, A.*
+				        FROM(SELECT
+		                        D.REFUND_NUM
+		                        , D.REFUND_REASON_CODE
+		                        , D.REFUND_DATE
+		                        , D.EPAY_NUM
+		                        , E.COM_CODE_NM AS ECOM_NM
+		                        , F.EPROD_NUM
+		                        , F.EPROD_NAME
+		                    FROM TB_MYEXPERT B 
+		                    INNER JOIN TB_EPROD_PAYMENT C ON(B.MY_EPROD = C.MY_EPROD)
+		                    INNER JOIN TB_EPROD_REFUND D ON(C.EPAY_NUM = D.EPAY_NUM)
+		                    INNER JOIN TB_COM_CODE E ON(D.REFUND_REASON_CODE = E.COM_CODE)
+		                    INNER JOIN TB_EXP_PROD F ON(F.EPROD_NUM = B.EPROD_NUM)
+		                    WHERE B.BUYER_ID = #{memId}
+		                    ) A    
+		        ) B
+		WHERE RNUM BETWEEN #{pagingVO.startRow} AND #{pagingVO.endRow}
+	</select>
+	
+	<select id="selectTotalWorkRefundRecord" resultType="int" parameterType="MemberVO">
+		SELECT COUNT(*)
+		FROM TB_WORK_REFUND A 
+		INNER JOIN TB_WORK_PAYMENT B ON(A.WPAY_NUM = B.WPAY_NUM)
+		INNER JOIN TB_PROJECT C ON(B.PJ_ID = C.PJ_ID)
+		WHERE C.PJ_CREATOR_ID = #{memId}
+	</select>
+	<select id="selectWorkRefundList" parameterType="map" resultType="WorkRefundVO">
+		SELECT B.*
+		FROM (SELECT ROWNUM RNUM, A.*
+				        FROM(SELECT
+		                        D.WPAY_NUM
+		                        , D.WORK_REF_CODE
+		                        , D.WORK_REF_DATE
+		                        , E.COM_CODE_NM AS WCOM_NM
+		                        , F.CPROD_NUM
+		                        , F.CPROD_NAME
+		                    FROM TB_PROJECT B 
+		                    INNER JOIN TB_WORK_PAYMENT C ON(B.PJ_ID = C.PJ_ID)
+		                    INNER JOIN TB_WORK_REFUND D ON(C.WPAY_NUM = D.WPAY_NUM)
+		                    INNER JOIN TB_COM_CODE E ON(D.WORK_REF_CODE = E.COM_CODE)
+		                    INNER JOIN TB_COO_PROD F ON(F.CPROD_NUM = C.CPROD_NUM)
+		                    WHERE B.PJ_CREATOR_ID = #{memId}
+		                    ) A    
+		        ) B
+		WHERE RNUM BETWEEN #{pagingVO.startRow} AND #{pagingVO.endRow}
+	</select>
+	
+	<select id="memberNumForChart" resultType="MemberVO">
+		SELECT
+			(SELECT COUNT(*)
+			FROM TB_MEMBER A INNER JOIN TB_ROLE_ASSIGNMENT B ON(A.MEM_ID = B.MEM_ID)
+			WHERE A.MEM_ID NOT IN(SELECT MEM_ID
+			                       FROM TB_DELMEMBER)
+			AND B.ROLE_CODE = 'ROLE_USER')  AS ROLE_USER
+			,(SELECT COUNT(*)
+			FROM TB_MEMBER A INNER JOIN TB_ROLE_ASSIGNMENT B ON(A.MEM_ID = B.MEM_ID)
+			WHERE A.MEM_ID NOT IN(SELECT MEM_ID
+			                       FROM TB_DELMEMBER)
+			AND B.ROLE_CODE = 'ROLE_EXPERT') AS ROLE_EXPERT
+			,(SELECT COUNT(*) AS ROLE_PROJECT
+			FROM TB_MEMBER A INNER JOIN TB_ROLE_ASSIGNMENT B ON(A.MEM_ID = B.MEM_ID)
+			WHERE A.MEM_ID NOT IN(SELECT MEM_ID FROM TB_DELMEMBER)
+			AND B.ROLE_CODE = 'ROLE_PROJECT') AS ROLE_PROJECT
+		FROM DUAL
+	</select>
+	
+	
+	<sql id="expAppvSearchFrag">
+		WHERE A.EX_APPR_CODE = #{apprCode}
+        AND A.APPLICANT_ID NOT IN((SELECT MEM_ID FROM TB_DELMEMBER))
+        AND A.APPLICANT_ID NOT IN((SELECT MEM_ID FROM TB_BLACKLIST))
+       	<trim prefix="AND">
+        	<if test="pagingVO.simpleCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(pagingVO.simpleCondition.searchWord)">
+	        	(
+		         	INSTR(A.EX_FORM_NUM, #{pagingVO.simpleCondition.searchWord}) > 0
+		        	OR 
+		        	INSTR(A.APPLICANT_ID, #{pagingVO.simpleCondition.searchWord}) > 0
+		        	OR 
+		        	INSTR(B.COM_CODE_NM, #{pagingVO.simpleCondition.searchWord}) > 0
+	        	)
+        	</if>
+       	</trim>
+	</sql>
+	
+	<select id="selectTotalExpertFormRecord" parameterType="map" resultType="int">
+		SELECT COUNT(*)
+		FROM TB_EXP_FORM A INNER JOIN TB_COM_CODE B ON(A.EX_APPR_CODE = B.COM_CODE)
+		<include refid="expAppvSearchFrag" />
+	</select>
+	<select id="selectExpertFormList" parameterType="map" resultType="ExpFormVO">
+		SELECT B.*
+		FROM (SELECT ROWNUM RNUM, A.*
+				        FROM(SELECT
+								A.EX_FORM_NUM
+								, A.APPLICANT_ID
+								, B.COM_CODE_NM
+							FROM TB_EXP_FORM A  INNER JOIN TB_COM_CODE B ON(A.EX_APPR_CODE = B.COM_CODE)
+							<include refid="expAppvSearchFrag" />
+							ORDER BY 1
+		                    ) A    
+		        ) B
+		WHERE RNUM BETWEEN #{pagingVO.startRow} AND #{pagingVO.endRow}
+	</select>
+	
+	<select id="selectExpertForm" parameterType="String" resultType="ExpFormVO">
+		SELECT 
+			A.APPLICANT_ID
+			, A.EX_FORM_CONTENT
+			, A.EX_FORM_ASSUME
+			, A.EX_APPR_CODE
+			, A.EX_FORM_NUM
+			, B.COM_CODE_NM
+		FROM TB_EXP_FORM A 
+        INNER JOIN TB_COM_CODE B ON(A.EX_APPR_CODE = B.COM_CODE)
+		WHERE A.EX_FORM_NUM = #{exFormNum}
+	</select>
+	
+	<insert id="insertMemberRoleExpert" parameterType="String">
+		INSERT INTO TB_ROLE_ASSIGNMENT (    
+		    MEM_ID,
+		    ROLE_CODE
+		) VALUES (
+		    #{applicantId, jdbcType=VARCHAR},
+		    'ROLE_EXPERT'
+		)
+	</insert>
+	
+	<update id="updateMemberExpert" parameterType="String">
+		UPDATE TB_EXP_FORM
+		    SET EX_APPR_CODE = #{apprCode}
+		WHERE EX_FORM_NUM = #{exFormNum}
+				
+	</update>
+	<select id="selectMemberList" parameterType="String" resultType="MemberVO">
+		SELECT 
+			DISTINCT A.MEM_ID
+			, A.MEM_PASS
+			, A.MEM_NAME
+			, A.MEM_NICK
+			, A.MEM_MAIL
+			, A.MEM_HP
+			, A.ACCUM_REP
+		FROM TB_MEMBER A
+		INNER JOIN TB_ROLE_ASSIGNMENT B ON(A.MEM_ID = B.MEM_ID)
+		WHERE A.MEM_ID NOT IN (SELECT A.MEM_ID 
+				              FROM TB_MEMBER A
+				              INNER JOIN TB_DELMEMBER B ON(A.MEM_ID = B.MEM_ID))
+				              AND B.ROLE_CODE=#{roleGoup}
+		ORDER BY MEM_NAME
+	</select>
+	
+	<insert id="insertExpert" parameterType="ExpertVO">
+		INSERT INTO tb_expert (
+			    EXPERT_ID,
+			    PRESENTATION,
+			    ASSUME,
+			    PROFILE_IMG
+			) VALUES (
+			     #{expertId,jdbcType=VARCHAR}
+			    ,#{presentation,jdbcType=VARCHAR}
+				,#{assume,jdbcType=VARCHAR}
+			    ,#{profileImg,jdbcType=VARCHAR}
+
+			)
+	</insert>
+	
+	<select id="checkAdmin" parameterType="String" resultType="int">
+		SELECT COUNT(*)
+		FROM TB_ROLE_ASSIGNMENT
+		WHERE MEM_ID = #{memId}
+		AND ROLE_CODE = 'ROLE_ADMIN'
+	</select>
+</mapper>

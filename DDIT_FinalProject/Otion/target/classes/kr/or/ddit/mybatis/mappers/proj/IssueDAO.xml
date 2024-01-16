@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.proj.issue.dao.IssueDAO">
+	
+		<sql id="searchFrag">
+		<if
+			test="simpleCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+			AND
+			<choose>
+				<when test="simpleCondition.searchType eq 'workReq'">
+					INSTR(C.WORK_REQ, #{simpleCondition.searchWord}) > 0
+				</when>
+				<when test="simpleCondition.searchType eq 'title'">
+					INSTR(D.ISSUE_TITLE, #{simpleCondition.searchWord}) > 0
+				</when>
+				<otherwise>
+					(
+					INSTR(C.WORK_REQ, #{simpleCondition.searchWord}) > 0
+					OR INSTR(D.ISSUE_TITLE, #{simpleCondition.searchWord}) > 0
+					)
+				</otherwise>
+			</choose>
+		</if>
+
+	</sql>
+	
+	<resultMap type="WorkVO" id="workMap" autoMapping="true">
+		<id property="workNum" column="WORK_NUM" />
+		<collection property="issueList"
+			ofType="IssueVO" autoMapping="true">
+			<id property="issueNum" column="ISSUE_NUM" />
+		</collection>
+	</resultMap>
+	
+	<select id="selectIssueList" parameterType="PagingVO" resultMap="workMap">
+		SELECT B.*
+		FROM (
+		SELECT A.*
+		FROM (
+		SELECT ROWNUM RNUM, C.WORK_NUM , C.PJ_ID, C.WORK_REQ, C.WORK_TITLE,
+		C.WORK_CONTENT, C.WORK_STATUS_CODE,
+		TO_CHAR(C.WORK_START,'YYYY-MM-DD') AS WORK_START,TO_CHAR(C.WORK_END,'YYYY-MM-DD')AS WORK_END,
+		C.WORK_PRIORITY,C.PARENT_WORK_NUM,D.ISSUE_NUM,D.ISSUE_TITLE,D.ISSUE_CONTENT,TO_CHAR(D.ISSUE_DATE,'YYYY-MM-DD')AS ISSUE_DATE
+		FROM TB_WORK C
+		LEFT OUTER JOIN TB_ISSUE D
+		ON(
+		C.WORK_NUM=D.WORK_NUM
+		)
+		WHERE C.PJ_ID = #{detailCondition.pjId}
+		AND D.ISSUE_NUM is not null
+		<include refid="searchFrag" />
+		ORDER BY RNUM
+		) A
+		) B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+
+	</select>
+	
+	<delete id="deleteIssue" parameterType="IssueVO">
+		DELETE FROM TB_ISSUE
+		WHERE ISSUE_NUM = #{issueNum}	
+	</delete>
+	
+	<select id="selectIssueCount" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(*)
+		FROM TB_WORK C, TB_ISSUE D
+		WHERE C.WORK_NUM = D.WORK_NUM
+		AND C.PJ_ID = #{detailCondition.pjId}
+		<include refid="searchFrag" />
+	</select>
+
+	<insert id="insertIssue" parameterType="kr.or.ddit.proj.issue.vo.IssueVO" >
+	
+	<selectKey keyProperty="issueNum" keyColumn="ISSUE_NUM" order="BEFORE" resultType="String">
+		SELECT  fn_create_num(to_char(sysdate,'yymmdd'), 'TB_ISSUE','ISSUE_NUM', UPPER('ISSU')) FROM DUAL
+	</selectKey>
+	
+	INSERT INTO TB_ISSUE
+	(ISSUE_NUM,WORK_NUM,ISSUE_TITLE,ISSUE_REQ,ISSUE_CONTENT,ISSUE_DATE
+	)
+	VALUES(
+	#{issueNum},
+	#{workNum},
+	#{issueTitle},
+	#{issueReq},
+	#{issueContent},
+	sysdate
+	
+	)
+	</insert>
+	
+	<insert id="insertReply" parameterType="IssueReplyVO">
+	
+	 <selectKey keyProperty="issueReplyNum" keyColumn="ISSUE_REPLY_NUM" order="BEFORE" resultType="String">
+		SELECT  fn_create_num(to_char(sysdate,'yymmdd'), 'TB_ISSUE_REPLY', 'ISSUE_REPLY_NUM',UPPER('ISRE')) FROM DUAL
+	</selectKey>
+	INSERT INTO TB_ISSUE_REPLY
+	(ISSUE_REPLY_NUM,ISSUE_NUM,SOLVE_WAY,SOLVER_NUM
+	)VALUES(
+	#{issueReplyNum},
+	#{issueNum},
+	#{solveWay},
+	#{solverNum}
+	
+	)
+	</insert>
+	
+	<select id="selectOneReply" parameterType="IssueReplyVO" resultType="IssueReplyVO">
+	SELECT A.ISSUE_REPLY_NUM,A.ISSUE_NUM,SOLVE_WAY,A.SOLVER_NUM,TO_CHAR(A.SOLVE_DATE,'YYYY-MM-DD HH24:MI') AS SOLVE_DATE,
+      	   B.MEM_ID AS WORK_REQ
+	FROM TB_ISSUE_REPLY A, TB_COLLEAGUE B
+	WHERE A.SOLVER_NUM=B.COL_NUM
+    AND   A.ISSUE_REPLY_NUM=#{issueReplyNum}
+	ORDER BY ISSUE_REPLY_NUM DESC
+	</select>
+
+	<select id="findIssue" parameterType="kr.or.ddit.proj.issue.vo.IssueVO" resultType="kr.or.ddit.proj.issue.vo.IssueVO">
+	SELECT  C.WORK_REQ,D.ISSUE_NUM,D.ISSUE_TITLE,D.ISSUE_REQ,D.ISSUE_CONTENT,TO_CHAR(D.ISSUE_DATE,'YYYY-MM-DD  HH24:MI')AS ISSUE_DATE
+		FROM TB_WORK C
+		LEFT OUTER JOIN TB_ISSUE D
+		ON(
+		C.WORK_NUM=D.WORK_NUM
+		)
+		WHERE ISSUE_NUM=#{issueNum}
+	</select>
+	
+	
+	<select id="findAllIssue" parameterType="kr.or.ddit.proj.issue.vo.IssueVO" resultType="kr.or.ddit.proj.issue.vo.IssueVO">
+	SELECT ISSUE_NUM,WORK_NUM,ISSUE_TITLE,ISSUE_CONTENT,TO_CHAR(ISSUE_DATE,'YYYY-MM-DD') AS ISSUE_DATE
+	FROM TB_ISSUE
+	WHERE WORK_NUM=#{workNum}
+	ORDER BY ISSUE_DATE DESC
+	</select>
+	
+	<resultMap type="IssueReplyVO" id="issueReplyMap" autoMapping="true">
+		<id property="issueReplyNum" column="ISSUE_REPLY_NUM" />
+		<collection property="attach"
+			ofType="AttatchVO" autoMapping="true">
+			<id property="attatchNum" column="ATTATCH_NUM" />
+		</collection>
+	</resultMap>
+	
+	
+	<select id="allIssueReplyList" parameterType="kr.or.ddit.proj.issue.vo.IssueReplyVO" resultMap="issueReplyMap">
+	
+		SELECT A.*,C.*
+	    from(SELECT A.ISSUE_REPLY_NUM,A.ISSUE_NUM,SOLVE_WAY,A.SOLVER_NUM,TO_CHAR(A.SOLVE_DATE,'YYYY-MM-DD HH24:MI') AS SOLVE_DATE,
+	      	   B.MEM_ID AS WORK_REQ, B.COO_PROFILE
+		FROM TB_ISSUE_REPLY A, TB_COLLEAGUE B
+		WHERE A.SOLVER_NUM=B.COL_NUM
+		ORDER BY ISSUE_REPLY_NUM DESC)A
+	   LEFT OUTER JOIN TB_ATTATCH C 
+		ON(
+			A.ISSUE_REPLY_NUM=C.ATTATCH_PLACE
+		)
+		WHERE A.ISSUE_NUM=#{issueNum}
+		
+	</select>
+	
+
+	<update id="modifyReply" parameterType="IssueReplyVO">
+	UPDATE TB_ISSUE_REPLY
+	SET 
+	<if test="@org.apache.commons.lang3.StringUtils@isBlank(solveWay)">
+		SOLVE_DATE =sysdate
+	</if>
+	<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(solveWay)">
+		SOLVE_WAY = #{solveWay}
+	</if>
+	WHERE ISSUE_REPLY_NUM=#{issueReplyNum}
+	</update>
+
+	<delete id="removeReply" parameterType="IssueReplyVO" >
+	DELETE FROM TB_ISSUE_REPLY
+	WHERE ISSUE_REPLY_NUM = #{issueReplyNum}
+	</delete>
+
+</mapper>

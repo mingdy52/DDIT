@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd" >
+<configuration>
+	<!-- 클래스 패스를 읽기 때문에 상대 경로로 적어줘야함 -->
+	<properties resource="kr/or/ddit/db/dbInfo.properties" />
+	<settings>
+		<setting name="mapUnderscoreToCamelCase" value="true"/>
+	</settings>
+	<typeAliases>
+		<package name="kr.or.ddit.proj.chat.vo"/>
+		<package name="kr.or.ddit.proj.colleague.vo"/>
+	</typeAliases>
+	<environments default="dev">
+		<environment id="dev">
+			<transactionManager type="JDBC" />
+			<!-- 미리 데이터 베이스에 대한 정보를 통해 객체를 만들어두는 과정 -->
+			<dataSource type="POOLED">
+				<!-- property의 placeHolder = "${}" -->
+				<!-- poolMaximumActiveConnections - 주어진 시간에 존재할 수 있는 활성화된(사용중인) 커넥션의 수. 디폴트는 10이다.(최대로 만들어서 움직일 수 있는 갯수) 
+				poolMaximumIdleConnections - 주어진 시간에 존재할 수 있는 유휴 커넥션의 수(처음에 시작되면 만드는 갯수) -->
+				<property name="driver" value="${maindb.driverClassName}" />
+				<property name="url" value="${maindb.url}" />
+				<property name="username" value="${maindb.user}" />
+				<property name="password" value="${maindb.password}" />
+				<property name="poolMaximumActiveConnections" value="${maindb.maxTotal}"/>
+				<property name="poolMaximumIdleConnections" value="${maindb.initialSize}"/>
+				<property name="poolTimeToWait" value="${maindb.maxWait}"/>
+			</dataSource>
+		</environment>
+	</environments>
+
+	<mappers>
+	<!-- ibatis로 따지면 sqlmap.xml 하나씩을 말함 -->
+		<mapper resource="kr/or/ddit/mybatis/mappers/proj/Chat.xml"/>
+	</mappers>
+
+</configuration>

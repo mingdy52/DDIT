@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.proj.colleague.dao.ColleagueDAO">
+
+	<sql id="searchFrag">
+
+			<if test="simpleCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+				AND
+				<choose>
+					<when test="simpleCondition.searchType eq 'title'">
+						INSTR(A.MEM_ID, #{simpleCondition.searchWord}) > 0
+					</when>
+					<when test="simpleCondition.searchType eq 'role'">
+						INSTR(A.WORK_ROLE_CODE, #{simpleCondition.searchWord}) > 0
+					</when>
+					<when test="simpleCondition.searchType eq 'about'">
+						INSTR(A.PROJ_AUTH_CODE, #{simpleCondition.searchWord}) > 0
+					</when>
+					<otherwise>
+					(
+						INSTR(A.MEM_ID, #{simpleCondition.searchWord}) > 0
+						OR INSTR(A.WORK_ROLE_CODE, #{simpleCondition.searchWord}) > 0
+						OR INSTR(A.PROJ_AUTH_CODE, #{simpleCondition.searchWord}) > 0
+						)
+					</otherwise>
+				</choose>
+			</if>
+	
+	</sql>
+
+	<insert id="insertColleagueLeader" parameterType="ColleagueVO">
+		<selectKey keyProperty="colNum" keyColumn="COL_NUM"
+			order="BEFORE" resultType="String">
+			SELECT fn_create_num(to_char(sysdate,'yymmdd'), 'TB_COLLEAGUE', 'COL_NUM',
+			UPPER('COLL'))
+			FROM DUAL
+		</selectKey>
+		INSERT INTO TB_COLLEAGUE
+		(
+		COL_NUM,
+		PJ_ID,
+		MEM_ID,
+		COL_DATE,
+		PROJ_AUTH_CODE,
+		WORK_ROLE_CODE
+		)
+		VALUES(
+		#{colNum},
+		#{pjId},
+		#{memId},
+		SYSDATE,
+		'PA01',
+		'WR01'
+		)
+	</insert>
+
+	<insert id="insertColleague" parameterType="ColleagueVO">
+		<selectKey keyProperty="colNum" keyColumn="COL_NUM"
+			order="BEFORE" resultType="String">
+			SELECT fn_create_num(to_char(sysdate,'yymmdd'), 'TB_COLLEAGUE', 'COL_NUM',
+			UPPER('COLL'))
+			FROM DUAL
+		</selectKey>
+		INSERT INTO TB_COLLEAGUE
+		(
+		COL_NUM,
+		PJ_ID,
+		COO_FORM_NUM,
+		MEM_ID,
+		COL_DATE,
+		PROJ_AUTH_CODE,
+		WORK_ROLE_CODE
+		)
+		VALUES(
+		#{colNum},
+		#{pjId},
+		#{cooFormNum},
+		#{memId},
+		SYSDATE,
+		'PA01',
+		#{workRoleCode}
+		)
+	</insert>
+
+	<resultMap type="ColleagueVO" id="myColleague"
+		autoMapping="true">
+		<id property="colNum" column="COL_NUM" />
+		<association property="member" javaType="MemberVO"
+			autoMapping="true" />
+	</resultMap>
+
+	<select id="selectColleage" parameterType="ColleagueVO"
+		resultMap="myColleague">
+		SELECT A.*, B.MEM_NAME, B.MEM_NICK, B.MEM_MAIL, B.MEM_HP
+		FROM TB_COLLEAGUE A, TB_MEMBER B
+		WHERE A.MEM_ID = B.MEM_ID
+		<if test=" @org.apache.commons.lang3.StringUtils@isBlank(colNum)">		
+		AND A.PJ_ID = #{pjId}
+		AND A.MEM_ID = #{memId}
+		</if>
+		<if test=" @org.apache.commons.lang3.StringUtils@isNotBlank(colNum)">	
+		AND A.COL_NUM = #{colNum}
+		</if>
+	</select>
+	
+	<select id="selectAdminColleague" parameterType="ColleagueVO" resultMap="myColleague">
+		SELECT A.*, B.MEM_NAME, B.MEM_NICK, B.MEM_MAIL, B.MEM_HP
+			FROM TB_COLLEAGUE A, TB_MEMBER B , TB_PROJECT C
+			WHERE A.MEM_ID = B.MEM_ID
+	        AND A.PJ_ID = C.PJ_ID
+			AND C.PJ_ADMIN_ID = #{memId}
+			AND C.PJ_ID = #{pjId}
+	</select>
+
+	<resultMap type="ColleagueVO" id="colleague"
+		autoMapping="true">
+		<id property="colNum" column="COL_NUM" />
+		<association property="member" autoMapping="true"
+			javaType="MemberVO" />
+	</resultMap>
+
+	<select id="setColleagueList" parameterType="String"
+		resultMap="colleague">
+		SELECT A.COL_NUM, A.PJ_ID, A.COO_FORM_NUM, A.MEM_ID,
+		A.COL_DATE, A.COL_RESIGN_YN, A.PROJ_AUTH_CODE, C.COM_CODE_NM AS
+		WORK_ROLE_CODE ,
+		B.MEM_NAME, B.MEM_NICK, B.MEM_MAIL, B.MEM_HP
+		FROM TB_COLLEAGUE A, TB_MEMBER B, TB_COM_CODE C
+		WHERE A.MEM_ID = B.MEM_ID
+		AND A.WORK_ROLE_CODE = C.COM_CODE
+		AND A.PJ_ID = #{pjId}
+	</select>
+
+	<select id="SearchColleagueList" parameterType="PagingVO" resultMap="colleague">
+
+		SELECT A.*
+		FROM (
+		SELECT ROWNUM RNUM, B.*
+		FROM ( SELECT A.COL_NUM, A.PJ_ID, A.COO_FORM_NUM, A.MEM_ID,
+		A.COL_DATE, A.COL_RESIGN_YN, A.PROJ_AUTH_CODE, C.COM_CODE_NM AS WORK_ROLE_CODE,
+		B.MEM_NAME, B.MEM_NICK, B.MEM_MAIL, B.MEM_HP
+		FROM TB_COLLEAGUE A, TB_MEMBER B, TB_COM_CODE C
+		WHERE A.MEM_ID = B.MEM_ID
+		AND A.WORK_ROLE_CODE = C.COM_CODE
+		AND A.PJ_ID = #{detailCondition.pjId}
+		<include refid="searchFrag" />
+		ORDER BY A.COL_NUM
+		) B
+		) A
+	</select>
+	
+	<update id="removeColleague" parameterType="String">
+		UPDATE TB_COLLEAGUE
+		SET COL_RESIGN_YN = 'Y'
+		WHERE COL_NUM = #{colNum}
+		
+	</update>
+	
+	<update id="updateProfile" parameterType="ColleagueVO">
+		UPDATE TB_COLLEAGUE
+		   SET COO_PROFILE = #{cooProfile}
+		 WHERE PJ_ID = #{pjId}
+		   AND MEM_ID= #{memId}
+	</update>
+	
+	<update id="updateCode" parameterType="ColleagueVO">
+		UPDATE TB_COLLEAGUE
+		   SET PROJ_AUTH_CODE = #{projAuthCode},
+		       WORK_ROLE_CODE = #{workRoleCode}
+		 WHERE COL_NUM = #{colNum}
+	</update>
+</mapper>

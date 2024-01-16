@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.proj.prod.dao.ProjectProdDAO">
+	<select id="selectProdList" resultType="projectprodvo">
+		SELECT *
+		  FROM TB_COO_PROD
+		  ORDER BY CPROD_NUM
+	</select>
+	
+	<insert id="insertBuyProd" parameterType="ProjectPaymentVO">
+	<selectKey keyColumn="WPAY_NUM" keyProperty="wpayNum" resultType="String" order="BEFORE">
+		SELECT fn_create_num(to_char(sysdate,'yymmdd'), 'TB_WORK_PAYMENT', 'WPAY_NUM',
+			UPPER('WPAY'))
+		  FROM DUAL
+	</selectKey>
+		INSERT INTO TB_WORK_PAYMENT(
+			WPAY_NUM,
+			CPROD_NUM,
+			PJ_ID,
+			WPAY_DATE,
+			WPAY_AMOUNT,
+			WPAY_END,
+			WPAY_YN
+		)
+		VALUES(
+			#{wpayNum},
+			#{cprodNum},
+			#{pjId},
+			SYSDATE,
+			#{wpayAmount},
+			SYSDATE,
+			'Y'
+		)
+	</insert>
+	
+	<select id="selectPayment" parameterType="String" resultType="ProjectPaymentVO">
+		SELECT WPAY_NUM, CPROD_NUM, PJ_ID, WPAY_AMOUNT, WPAY_END, WPAY_METHOD_CODE, WPAY_YN
+		  FROM TB_WORK_PAYMENT
+		 WHERE PJ_ID = #{pjId}
+		   AND WPAY_YN = 'Y'
+	</select>
+</mapper>

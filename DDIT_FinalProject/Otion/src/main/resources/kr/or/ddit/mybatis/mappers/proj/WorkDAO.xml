@@ -1,0 +1,432 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.proj.work.dao.WorkDAO">
+	<resultMap type="kr.or.ddit.proj.work.vo.WorkVO" id="work"
+		autoMapping="true">
+		<id property="pjId" column="PJ_ID" />
+	</resultMap>
+
+	<sql id="searchFrag">
+		<if
+			test="simpleCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+			AND
+			<choose>
+				<when test="simpleCondition.searchType eq 'title'">
+					INSTR(C.WORK_TITLE, #{simpleCondition.searchWord}) > 0
+				</when>
+				<when test="simpleCondition.searchType eq 'progress'">
+					INSTR(C.WORK_STATUS_CODE, #{simpleCondition.searchWord}) > 0
+				</when>
+			
+				<when test="simpleCondition.searchType eq 'requester'">
+					INSTR(C.WORK_REQ, #{simpleCondition.searchWord}) > 0
+				</when>	
+	
+				<when test="simpleCondition.searchType eq 'priority'">
+					INSTR(C.WORK_PRIORITY, #{simpleCondition.searchWord}) > 0
+				</when>
+				<otherwise>
+					(
+					INSTR(C.WORK_TITLE, #{simpleCondition.searchWord}) > 0
+					OR INSTR(C.WORK_PRIORITY, #{simpleCondition.searchWord}) > 0
+					OR INSTR(C.WORK_STATUS_CODE, #{simpleCondition.searchWord}) > 0
+					OR INSTR(C.WORK_REQ, #{simpleCondition.searchWord}) > 0
+					)
+				</otherwise>
+			</choose>
+		</if>
+
+	</sql>
+
+	<resultMap type="WorkVO" id="workMap" autoMapping="true">
+		<id property="workNum" column="WORK_NUM" />
+		<collection property="replyList"
+			ofType="kr.or.ddit.proj.work.vo.ReplyVO" autoMapping="true">
+			<id property="woReplyNum" column="WO_REPLY_NUM" />
+		</collection>
+		<collection property="memberList" ofType="string"
+			autoMapping="true">
+			<id column="MEM_ID" />
+		</collection>
+	</resultMap>
+
+	<select id="selectParentWork" parameterType="WorkVO" resultType="WorkVO" >
+	SELECT WORK_NUM
+	FROM  TB_WORK
+	WHERE PARENT_WORK_NUM =#{workNum}
+	
+	</select>
+
+	<select id="selectWorkList" parameterType="PagingVO" resultType="WorkVO">
+	
+		SELECT B.*
+		FROM (
+		SELECT ROWNUM RNUM,A.*
+		FROM (
+			SELECT  C.WORK_NUM , C.PJ_ID, C.WORK_REQ, C.WORK_TITLE,
+			C.WORK_CONTENT, C.WORK_STATUS_CODE,
+			TO_CHAR(C.WORK_START,'YYYY-MM-DD') AS WORK_START,TO_CHAR(C.WORK_END,'YYYY-MM-DD')AS WORK_END,
+			C.WORK_PRIORITY,C.PARENT_WORK_NUM
+			FROM TB_WORK C
+<!-- 			WHERE C.PARENT_WORK_NUM IS NULL -->
+			WHERE C.PJ_ID = #{detailCondition.pjId}
+			<include refid="searchFrag" />
+			 ORDER BY  C.WORK_NUM DESC
+		) A
+		) B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+		ORDER BY RNUM
+
+	</select>
+
+	<delete id="deleteWorkNumReply" parameterType="WorkVO">
+	DELETE FROM TB_WORK_REPLY
+	WHERE WORK_NUM=#{workNum}
+	</delete>
+	
+	<delete id="deleteIssue" parameterType="WorkVO">
+	DELETE FROM TB_ISSUE
+	WHERE WORK_NUM=#{workNum}
+	</delete>
+	
+	<delete id="deleteIssueReply" parameterType="IssueVO">
+	DELETE FROM TB_ISSUE_REPLY
+	WHERE ISSUE_NUM=#{issueNum}
+	</delete>
+	
+	<select id="selectIssueList" parameterType="WorkVO" resultType="IssueVO">
+	
+	SELECT ISSUE_NUM
+	FROM TB_ISSUE
+	WHERE WORK_NUM=#{workNum}
+	
+	
+	
+	</select>
+	<select id="selectAllWorkList" parameterType="PagingVO"
+		resultMap="workMap">
+
+		SELECT C.WORK_NUM , C.PJ_ID, C.WORK_REQ, C.WORK_TITLE,
+		C.WORK_CONTENT, C.WORK_STATUS_CODE,
+		TO_CHAR(C.WORK_START,'YYYY-MM-DD') AS WORK_START,TO_CHAR(C.WORK_END,'YYYY-MM-DD')AS WORK_END,
+		C.WORK_PRIORITY,C.PARENT_WORK_NUM,
+		E.MEM_ID
+
+		FROM TB_WORK C
+		LEFT OUTER JOIN TB_WORK_ASSIGNMENT D
+		ON(
+		C.WORK_NUM=D.WORK_NUM
+		)
+		LEFT OUTER JOIN TB_COLLEAGUE E
+		ON (
+		D.COL_NUM = E.COL_NUM
+		)
+
+		WHERE C.PJ_ID = #{detailCondition.pjId}
+		ORDER BY C.WORK_NUM DESC
+	</select>
+	<resultMap type="WorkVO" id="myWorkList" autoMapping="true">
+		<id property="workNum" column="WORK_NUM" />
+		<collection property="replyList" ofType="ReplyVO"
+			autoMapping="true" />
+	</resultMap>
+
+	<sql id="searchTitle">
+		<trim prefix="AND">
+			<if
+				test="@org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+				(
+				INSTR(WORK_TITLE,#{simpleCondition.searchWord}) > 0
+				)
+			</if>
+		</trim>
+	</sql>
+
+	<select id="selectMyWorkTotalRecord" parameterType="PagingVO"
+		resultType="int">
+		SELECT COUNT(*)
+		FROM TB_WORK A, TB_WORK_ASSIGNMENT B, TB_COLLEAGUE C
+		WHERE A.WORK_NUM = B.WORK_NUM
+		AND B.COL_NUM = C.COL_NUM
+		AND C.PJ_ID = #{detailCondition.pjId}
+		AND C.MEM_ID = #{detailCondition.memId}
+		<include refid="searchTitle" />
+	</select>
+
+	<select id="selectMyWorkList" parameterType="PagingVO"
+		resultType="WorkVO">
+		SELECT *
+		FROM (
+		SELECT ROWNUM RNUM, A.WORK_NUM , A.PJ_ID, A.WORK_REQ, A.WORK_TITLE,
+		A.WORK_CONTENT, A.WORK_STATUS_CODE,
+		TO_CHAR(A.WORK_START,'YYYY-MM-DD') AS WORK_START,TO_CHAR(A.WORK_END,'YYYY-MM-DD')AS WORK_END,
+		A.WORK_PRIORITY,A.PARENT_WORK_NUM
+		FROM TB_WORK A ,
+		TB_WORK_ASSIGNMENT B, TB_COLLEAGUE C
+		WHERE A.WORK_NUM = B.WORK_NUM
+		AND B.COL_NUM = C.COL_NUM
+		AND C.PJ_ID = #{detailCondition.pjId}
+		AND C.MEM_ID = #{detailCondition.memId}
+		<include refid="searchTitle" />
+		)
+		 <![CDATA[
+  		WHERE RNUM >= #{startRow} AND RNUM <=#{endRow}
+  		 ]]>
+	</select>
+
+	<select id="selectAllMemList" parameterType="String"
+		resultType="ColleagueVO">
+		SELECT MEM_ID,PROJ_AUTH_CODE
+		FROM TB_COLLEAGUE
+		WHERE PJ_ID=#{pjId}
+	</select>
+
+	<select id="selectWorkCount" parameterType="PagingVO"
+		resultType="int">
+		SELECT COUNT(*)
+		FROM TB_WORK C
+<!-- 		WHERE C.PARENT_WORK_NUM IS NULL -->
+        WHERE 1=1
+		<include refid="searchFrag" />
+	</select>
+
+	<select id="selectOne" parameterType="String"
+		resultType="WorkVO">
+		SELECT C.WORK_NUM , C.PJ_ID, C.WORK_REQ, C.WORK_TITLE,
+		C.WORK_CONTENT, C.WORK_STATUS_CODE,
+		TO_CHAR(C.WORK_START,'YYYY-MM-DD') AS WORK_START,TO_CHAR(C.WORK_END,'YYYY-MM-DD')AS WORK_END,
+		C.WORK_PRIORITY,C.PARENT_WORK_NUM,
+		E.MEM_ID
+
+		FROM TB_WORK C
+		LEFT OUTER JOIN TB_WORK_ASSIGNMENT D
+		ON(
+		C.WORK_NUM=D.WORK_NUM
+		)
+		LEFT OUTER JOIN TB_COLLEAGUE E
+		ON (
+		D.COL_NUM = E.COL_NUM
+		)
+		WHERE C.WORK_NUM = #{workNum}
+	</select>
+	
+	<update id="updateReply" parameterType="ReplyVO" >
+	
+	 UPDATE TB_WORK_REPLY
+	 SET
+	 WO_REPLY_CONTENT = #{woReplyContent}
+	 ,WO_REPLY_DATE =sysdate
+	WHERE WO_REPLY_NUM = #{woReplyNum}
+	
+	</update>
+	<resultMap type="ReplyVO" id="replyList" autoMapping="true">
+		<id property="woReplyNum" column="WO_REPLY_NUM"/>
+		<association property="attatch" javaType="AttatchVO" autoMapping="true"/>
+		<association property="colleague" javaType="ColleagueVO" autoMapping="true" />
+	</resultMap>
+
+	<select id="selectAllReplyList" parameterType="ReplyVO" resultMap="replyList">
+
+	SELECT A.WO_REPLY_NUM,B.MEM_ID,A.WORK_NUM,A.WO_REPLY_CONTENT,TO_CHAR(A.WO_REPLY_DATE,'YYYY-MM-DD') AS WO_REPLY_DATE,A.PARENT_WO_REPLY_NUM
+		, C.*, B.*
+        FROM TB_WORK_REPLY A
+		LEFT OUTER JOIN TB_COLLEAGUE B 
+		ON(
+		A.WRITER_NUM=B.COL_NUM
+		)
+        LEFT OUTER JOIN TB_ATTATCH C
+        ON
+        (
+        A.WO_REPLY_NUM = C.ATTATCH_PLACE
+        )
+        WHERE A.WORK_NUM=#{workNum}
+         AND  B.PJ_ID = #{pjId}
+         ORDER BY A.WO_REPLY_NUM DESC
+		
+	</select>
+	
+	<update id="modifyWork"
+		parameterType="kr.or.ddit.proj.work.vo.WorkVO">
+		UPDATE TB_WORK
+		SET
+		WORK_REQ =#{workReq} ,
+		WORK_TITLE = #{workTitle},
+		WORK_CONTENT = #{workContent},
+		WORK_STATUS_CODE = #{workStatusCode},
+		WORK_START = TO_DATE(#{workStart}, 'YYYY-MM-DD HH24:MI:SS'),
+		WORK_END = TO_DATE( #{workEnd}, 'YYYY-MM-DD HH24:MI:SS'),
+		WORK_PRIORITY = #{workPriority}
+		<if test="parentWorkNum neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(parentWorkNum)">
+			,PARENT_WORK_NUM = #{parentWorkNum}
+		</if>
+		WHERE WORK_NUM = #{workNum}
+	</update>
+
+	<delete id="deleteAssignment"
+		parameterType="kr.or.ddit.proj.work.vo.WorkVO">
+		DELETE FROM TB_WORK_ASSIGNMENT
+		WHERE WORK_NUM = #{workNum}
+	</delete>
+	
+	<delete id="deleteWork" parameterType="WorkVO">
+		DELETE FROM TB_WORK
+		WHERE WORK_NUM = #{workNum}
+	</delete>
+
+
+	<insert id="insertdeleteAssignment" parameterType="Map">
+		INSERT INTO TB_WORK_ASSIGNMENT
+		( ASSIGNMENT_NUM,WORK_NUM,COL_NUM
+		) VALUES
+		(
+		fn_create_num(to_char(sysdate,'yymmdd'), 'TB_WORK_ASSIGNMENT', 'ASSIGNMENT_NUM',
+		UPPER('WAGM'))
+		,#{workNum}
+		,(SELECT COL_NUM
+		FROM TB_COLLEAGUE
+		WHERE MEM_ID = #{member}
+		AND PJ_ID = #{pjId})
+		)
+
+	</insert>
+
+	<select id="selectChildWork" parameterType="PagingVO"
+		resultType="WorkVO">
+
+		SELECT WORK_NUM
+		FROM TB_WORK
+		WHERE PJ_ID = #{detailCondition.pjId} AND WORK_REQ
+		=#{detailCondition.workReq}
+		AND WORK_TITLE=#{detailCondition.workTitle} AND
+		WORK_CONTENT=#{detailCondition.workContent}
+		AND WORK_STATUS_CODE=#{detailCondition.workStatusCode} AND
+		WORK_START=#{detailCondition.workStart}
+		AND WORK_END=#{detailCondition.workEnd} AND
+		WORK_PRIORITY=#{detailCondition.workPriority}
+		AND PARENT_WORK_NUM=#{detailCondition.parentWorkNum}
+
+
+	</select>
+
+	<insert id="insertWork" parameterType="WorkVO"  >
+	
+	 <selectKey keyProperty="workNum" keyColumn="WORK_NUM" order="BEFORE" resultType="String">
+		SELECT  fn_create_num(to_char(sysdate,'yymmdd'), 'TB_WORK','WORK_NUM', UPPER('WORK')) FROM DUAL
+	</selectKey>
+	
+	INSERT INTO TB_WORK
+	(	WORK_NUM,PJ_ID,WORK_REQ,WORK_TITLE,WORK_CONTENT,WORK_STATUS_CODE,WORK_START
+		,WORK_END,WORK_PRIORITY
+		 <if test="parentWorkNum neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(parentWorkNum)">
+		,PARENT_WORK_NUM
+		</if>
+	 ) VALUES 
+	 (
+		#{workNum}
+        ,#{pjId}
+        ,#{workReq}
+      	,#{workTitle}
+      	,#{workContent}
+      	,#{workStatusCode}
+      	,#{workStart}
+      	,#{workEnd}
+      	,#{workPriority}
+      	<if test="parentWorkNum neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(parentWorkNum)">
+      	,#{parentWorkNum}
+      </if>
+	 
+	 )
+	 
+	
+	 
+	</insert>
+	
+	<delete id="deleteReply" parameterType="ReplyVO">
+	DELETE FROM TB_WORK_REPLY
+	WHERE WO_REPLY_NUM =#{woReplyNum}
+	</delete>
+	
+	<delete id="deleteParentWoReplyNum" parameterType="ReplyVO">
+	DELETE FROM TB_WORK_REPLY
+	WHERE PARENT_WO_REPLY_NUM =#{parentWoReplyNum}
+	</delete>
+	
+	
+	<insert id="insertReply" parameterType="ReplyVO"  >
+			 <selectKey keyProperty="woReplyNum" keyColumn="WO_REPLY_NUM" order="BEFORE" resultType="String">
+				<if test="@org.apache.commons.lang3.StringUtils@isBlank(woReplyNum)">	
+							SELECT  fn_create_num(to_char(sysdate,'yymmdd'), 'TB_WORK_REPLY','WO_REPLY_NUM', UPPER('WORE')) FROM DUAL
+				</if>
+			</selectKey>
+	INSERT INTO TB_WORK_REPLY
+	(	WO_REPLY_NUM,WRITER_NUM,WORK_NUM,WO_REPLY_CONTENT,WO_REPLY_DATE
+		
+		 <if test="parentWoReplyNum neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(parentWoReplyNum)">
+		,PARENT_WO_REPLY_NUM
+		</if>
+	 ) VALUES 
+	 (
+		#{woReplyNum}
+		,#{writerNum}
+		,#{workNum}
+		,#{woReplyContent}
+		,sysdate
+      	<if test="parentWoReplyNum neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(parentWoReplyNum)">
+      	,#{parentWoReplyNum}
+      	</if>
+	 
+	 )
+	
+	</insert>
+	
+	<select id="selectColNum" parameterType="ReplyVO" resultType="String">
+		SELECT COL_NUM
+		FROM TB_COLLEAGUE
+		WHERE MEM_ID = #{workReq}
+			  AND PJ_ID =#{pjId} 
+	</select>
+	
+	
+	
+
+	<select id="selectMyWork" parameterType="ColleagueVO"
+		resultType="WorkVO">
+		SELECT A.WORK_NUM , A.PJ_ID, A.WORK_REQ, A.WORK_TITLE,
+		A.WORK_CONTENT, A.WORK_STATUS_CODE,
+		TO_CHAR(A.WORK_START,'YY-MM-DD') AS WORK_START,TO_CHAR(A.WORK_END,'YY-MM-DD')AS WORK_END,
+		A.WORK_PRIORITY,A.PARENT_WORK_NUM
+		FROM TB_WORK A, TB_WORK_ASSIGNMENT B
+		WHERE A.WORK_NUM = B.WORK_NUM
+		AND B.COL_NUM = #{colNum}
+		<include refid="myWorkSearch" />
+	</select>
+
+	<sql id="myWorkSearch">
+		<if test="workSearchVO neq null">
+			<if
+				test="@org.apache.commons.lang3.StringUtils@isNotBlank(workSearchVO.workTitle)">
+				AND INSTR(WORK_TITLE,#{workSearchVO.workTitle}) > 0
+			</if>
+			<if
+				test="@org.apache.commons.lang3.StringUtils@isNotBlank(workSearchVO.workPriority)">
+				AND INSTR(WORK_PRIORITY,#{workSearchVO.workPriority}) > 0
+			</if>
+			<if
+				test="@org.apache.commons.lang3.StringUtils@isNotBlank(workSearchVO.workStatusCode)">
+				AND INSTR(WORK_STATUS_CODE,#{workSearchVO.workStatusCode}) > 0
+			</if>
+			<if
+				test="@org.apache.commons.lang3.StringUtils@isNotBlank(workSearchVO.workStart)">
+				 <![CDATA[
+				AND WORK_START >= TO_DATE(#{workSearchVO.workStart}, 'YYYY-MM-DD')
+  		 		]]>
+			</if>
+			<if
+				test="@org.apache.commons.lang3.StringUtils@isNotBlank(workSearchVO.workEnd)">
+				 <![CDATA[
+				AND WORK_END <= TO_DATE(#{workSearchVO.workEnd}, 'YYYY-MM-DD')
+  				 ]]>
+			</if>
+		</if>
+	</sql>
+</mapper>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- [[개정이력(Modification Information)]] -->
+<!-- 수정일 수정자 수정내용 -->
+<!-- ========== ====== ============== -->
+<!-- 2022. 8. 6.} 서효림 최초작성 -->
+<!-- Copyright (c) 2022 by DDIT All right reserved -->
+
+<!-- 로그인 -->
+<mapper namespace = "kr.or.ddit.common.login.dao">
+	<select id="selectMember" parameterType="MemberVO" resultType="MemberVO">
+		SELECT MEM_ID, MEM_PASS, MEM_NAME, MEM_NICK, MEM_MAIL, MEM_HP, ACCUM_REP
+		 FROM TB_MEMBER                                          
+		 WHERE MEM_ID = #{memId}  AND MEM_DELETE IS NULL
+	</select>
+	
+	<sql id="search">
+		
+	
+	
+	</sql>
+	
+	<insert id="insertMember" parameterType="MemberVO">
+		INSERT INTO TB_MEMBER (                                                                 
+			MEM_ID
+			, MEM_PASS 
+			, MEM_NAME
+			, MEM_NICK  
+			, MEM_MAIL 
+			, MEM_HP 
+			, ACCUM_REP
+		) VALUES (                                                                       
+			 , #{memId,jdbcType=VARCHAR}
+			, #{memPass,jdbcType=VARCHAR}
+			, #{memName,jdbcType=VARCHAR}
+			, #{memNick,jdbcType=VARCHAR}
+			, #{memMail,jdbcType=VARCHAR}
+			, #{memHp,jdbcType=VARCHAR}
+			, #{accumRep,jdbcType=NUMERIC}
+		)		                                                                             
+	</insert>
+	<update id="updateMember" parameterType="MemberVO">
+		UPDATE TB_MEMBER
+		SET                                                      
+			MEM_ID     = #{memId,jdbcType=VARCHAR}          
+			, MEM_PASS = #{memPass,jdbcType=VARCHAR} 
+			, MEM_NAME = #{memName,jdbcType=VARCHAR} 
+			, MEM_NICK = #{memNick,jdbcType=VARCHAR} 
+			, MEM_MAIL = #{memMail,jdbcType=VARCHAR} 
+			, MEM_HP   = #{memHp,jdbcType=VARCHAR}   
+			, ACCUM_REP= #{accumRep,jdbcType=NUMERIC}
+	</update>   
+	        	
+</mapper>

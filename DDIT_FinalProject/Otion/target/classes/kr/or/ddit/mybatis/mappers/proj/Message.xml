@@ -1,0 +1,380 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.proj.msg.dao.MessageDAO">
+	<resultMap type="MessageVO" id="message" autoMapping="true">
+		<id property="msgNum" column="MSG_NUM" />
+		<collection property="receiverList"
+			javaType="java.util.List" ofType="MessageReceiverVO"
+			autoMapping="true" />
+	</resultMap>
+
+	<sql id="search">
+		<trim prefix="AND">
+			<if test="simpleCondition neq null">
+				<choose>
+					<when test="simpleCondition.searchType eq 'send'">
+						MSG_WRITER_ID = #{detailCondition.msgWriterId}
+						AND MSG_DEL_YN = 'N'
+						<if
+							test="@org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+							AND
+							INSTR(MSG_TITLE,#{simpleCondition.searchWord}) > 0
+						</if>
+					</when>
+					<when test="simpleCondition.searchType eq 'receiver'">
+						B.RECEIVER_NUM = #{detailCondition.receiverNum}
+						AND B.MSG_REC_DEL =
+						'N'
+						<if
+							test="@org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+							AND
+							INSTR(MSG_TITLE,#{simpleCondition.searchWord}) > 0
+						</if>
+					</when>
+					<when test="simpleCondition.searchType eq 'important'">
+						(
+						A.MSG_WRITER_ID = #{detailCondition.msgWriterId}
+						OR
+						B.RECEIVER_NUM
+						= #{detailCondition.msgWriterId}
+						)
+						AND
+						(
+						A.MSG_IMPORTANT = 'Y'
+						OR
+						B.MSG_REC_IM = 'Y'
+						)
+						<if
+							test="@org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+							AND
+							INSTR(MSG_TITLE,#{simpleCondition.searchWord}) > 0
+						</if>
+					</when>
+					<when test="simpleCondition.searchType eq 'delete'">
+						(
+						A.MSG_WRITER_ID = #{detailCondition.msgWriterId}
+						OR
+						B.RECEIVER_NUM
+						= #{detailCondition.msgWriterId}
+						)
+						AND
+						(
+						A.MSG_DEL_YN = 'Y'
+						OR
+						B.MSG_REC_DEL = 'Y'
+						)
+						<if
+							test="@org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+							AND
+							INSTR(MSG_TITLE,#{simpleCondition.searchWord}) > 0
+						</if>
+					</when>
+				</choose>
+			</if>
+			<if
+				test="simpleCondition eq null and @org.apache.commons.lang3.StringUtils@isBlank(simpleCondition.searchWord)">
+				A.MSG_DEL_YN = 'N'
+				AND B.MSG_REC_DEL = 'N'
+				(
+				A.MSG_WRITER_ID =
+				#{detailCondition.msgWriterId}
+				OR
+				B.RECEIVER_NUM =
+				#{detailCondition.msgWriterId}
+				)
+			</if>
+		</trim>
+	</sql>
+
+	<select id="selectTotalRecord" parameterType="PagingVO"
+		resultType="int">
+		SELECT COUNT(*)
+		FROM TB_MESSAGE A, TB_MSG_RECEIVER B
+		WHERE A.MSG_NUM =
+		B.MSG_NUM
+		<include refid="search" />
+	</select>
+
+	<select id="selectTotalSendRecord" parameterType="PagingVO"
+		resultType="int">
+		SELECT COUNT(*)
+		FROM TB_MESSAGE
+		WHERE PJ_ID = #{colleague.pjId}
+		AND
+		MSG_DEL_YN = 'N'
+		AND MSG_WRITER_ID = #{colleague.memId}
+		<include refid="search" />
+	</select>
+
+	<select id="selectTotalReceiveRecord" parameterType="PagingVO"
+		resultType="int">
+		SELECT COUNT(*)
+		FROM TB_MESSAGE A, TB_MSG_RECEIVER B
+		WHERE A.MSG_NUM =
+		B.MSG_NUM
+		AND B.RECEIVER_NUM = #{colleague.memId}
+		AND MSG_REC_DEL = 'N'
+		<include refid="search" />
+	</select>
+
+	<select id="messageList" parameterType="PagingVO"
+		resultMap="message">
+		SELECT *
+		FROM (SELECT ROWNUM RNUM,
+		A.MSG_NUM, A.PJ_ID, A.MSG_TITLE,
+		A.MSG_CONTENT,
+		A.MSG_DATE, A.MSG_DEL_YN, A.MSG_WRITER_ID,
+		A.MSG_CODE,A.MSG_IMPORTANT
+
+		,B.RECEIVER_NUM, B.READ_DATE, B.MSG_REC_DEL,
+		B.MSG_REC_IM
+
+		FROM TB_MESSAGE A, TB_MSG_RECEIVER B
+
+		WHERE A.MSG_NUM =
+		B.MSG_NUM
+		AND A.PJ_ID = #{detailCondition.pjId}
+
+		<include refid="search" />
+		)
+		 <![CDATA[
+  		WHERE RNUM >= #{startRow} AND RNUM <=#{endRow}
+  		 ]]>
+	</select>
+
+	<select id="selectMsgSenderList" parameterType="ColleagueVO" resultMap="sendList">
+		SELECT A.MSG_NUM, A.PJ_ID, A.MSG_TITLE, A.MSG_CONTENT,
+		A.MSG_IMPORTANT,
+		A.MSG_DATE, A.MSG_DEL_YN, A.MSG_WRITER_ID, A.MSG_CODE,
+		B.RECEIVER_NUM, B.READ_DATE, B.MSG_REC_DEL, B.MSG_REC_IM
+		FROM TB_MESSAGE A, TB_MSG_RECEIVER B
+		WHERE A.MSG_NUM = B.MSG_NUM
+		AND A.PJ_ID = #{pjId}
+		AND A.MSG_DEL_YN = 'N'
+		AND
+		A.MSG_WRITER_ID = #{memId}
+		<if
+				test="simpleCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+				AND INSTR(MSG_TITLE,#{simpleCondition.searchWord}) > 0
+			</if>
+	</select>
+	
+	<resultMap type="MessageVO" id="sendList" autoMapping="true">
+		<id property="msgNum" column="MSG_NUM"/>
+		<collection property="receiverList" ofType="MessageReceiverVO" autoMapping="true" />
+	</resultMap>
+
+	<select id="selectMessageSenderList" parameterType="PagingVO"
+		resultMap="sendList">
+		SELECT *
+		FROM (
+		SELECT ROWNUM RNUM, A.MSG_NUM, A.PJ_ID, A.MSG_TITLE,
+		A.MSG_CONTENT,
+		A.MSG_IMPORTANT,
+		A.MSG_DATE, A.MSG_DEL_YN,
+		A.MSG_WRITER_ID, A.MSG_CODE,
+		B.RECEIVER_NUM, B.READ_DATE, B.MSG_REC_DEL, B.MSG_REC_IM
+		FROM TB_MESSAGE A, TB_MSG_RECEIVER B
+		WHERE A.MSG_NUM = B.MSG_NUM
+		AND A.PJ_ID =
+		#{colleague.pjId}
+		AND A.MSG_DEL_YN = 'N'
+		AND A.MSG_WRITER_ID =
+		#{colleague.memId}
+		<include refid="searchTitle" />
+		)
+		 <![CDATA[
+  		WHERE RNUM >= #{startRow} AND RNUM <=#{endRow}
+  		 ]]>
+	</select>
+	<sql id="searchTitle">
+		<trim prefix="AND">
+			<if
+				test="@org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+				INSTR(MSG_TITLE,#{simpleCondition.searchWord}) > 0
+			</if>
+		</trim>
+	</sql>
+
+	<resultMap type="MessageReceiverVO" id="receiveList"
+		autoMapping="true">
+		<association property="message" javaType="MessageVO"
+			autoMapping="true" />
+	</resultMap>
+	
+	<select id="selectMsgReceiveList" parameterType="ColleagueVO" resultMap="receiveList">
+		SELECT ROWNUM RNUM, 
+				A.MSG_NUM, A.PJ_ID, A.MSG_TITLE,
+				A.MSG_CONTENT,
+				A.MSG_IMPORTANT,
+				A.MSG_DATE, A.MSG_DEL_YN,
+				A.MSG_WRITER_ID, A.MSG_CODE,
+				B.RECEIVER_NUM, B.READ_DATE, B.MSG_REC_DEL, B.MSG_REC_IM
+		FROM TB_MESSAGE A,
+		TB_MSG_RECEIVER B
+		WHERE A.MSG_NUM = B.MSG_NUM
+		AND B.PJ_ID = #{pjId}
+		AND B.RECEIVER_NUM = #{memId}
+		<if
+				test="simpleCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+				AND INSTR(MSG_TITLE,#{simpleCondition.searchWord}) > 0
+			</if>
+	</select>
+
+	<select id="selectMessageReceiverList" parameterType="PagingVO"
+		resultMap="receiveList">
+		SELECT *
+		FROM (
+		SELECT ROWNUM RNUM, 
+				A.MSG_NUM, A.PJ_ID, A.MSG_TITLE,
+				A.MSG_CONTENT,
+				A.MSG_IMPORTANT,
+				A.MSG_DATE, A.MSG_DEL_YN,
+				A.MSG_WRITER_ID, A.MSG_CODE,
+				B.RECEIVER_NUM, B.READ_DATE, B.MSG_REC_DEL, B.MSG_REC_IM
+		FROM TB_MESSAGE A,
+		TB_MSG_RECEIVER B
+		WHERE A.MSG_NUM = B.MSG_NUM
+		AND B.PJ_ID = #{colleague.pjId}
+		AND B.MSG_REC_DEL = 'N'
+		AND B.RECEIVER_NUM = #{colleague.memId}
+		<include refid="searchTitle" />
+		)
+		 <![CDATA[
+  		WHERE RNUM >= #{startRow} AND RNUM <=#{endRow}
+  		 ]]>
+	</select>
+
+	<insert id="insertMessage" parameterType="MessageVO">
+		<selectKey keyProperty="msgNum" keyColumn="MSG_NUM"
+			resultType="String" order="BEFORE">
+			SELECT
+			fn_create_num(to_char(sysdate,'yymmdd'), 'TB_MESSAGE', 'MSG_NUM',
+			UPPER('MESG'))
+			FROM DUAL
+		</selectKey>
+		INSERT INTO TB_MESSAGE(
+		MSG_NUM,
+		PJ_ID,
+		MSG_TITLE,
+		MSG_CONTENT,
+		MSG_DATE,
+		MSG_WRITER_ID
+		)
+		VALUES
+		(
+		#{msgNum},
+		#{pjId},
+		#{msgTitle},
+		#{msgContent},
+		SYSDATE,
+		#{msgWriterId}
+		)
+	</insert>
+	<insert id="insertMessageReceiver"
+		parameterType="MessageReceiverVO">
+		INSERT INTO TB_MSG_RECEIVER(
+		RECEIVER_NUM,
+		MSG_NUM,
+		READ_DATE,
+		PJ_ID
+		)
+		VALUES
+		(
+		#{receiverNum},
+		#{msgNum},
+		SYSDATE,
+		#{pjId}
+		)
+	</insert>
+	<update id="deleteMessage" parameterType="MessageVO">
+		UPDATE TB_MESSAGE
+		SET
+		MSG_DEL_YN = 'Y'
+		WHERE MSG_NUM = #{msgNum}
+	</update>
+	<update id="deleteMessageReceiver"
+		parameterType="MessageReceiverVO">
+		UPDATE TB_MSG_RECEIVER
+		SET MSG_REC_DEL = 'Y'
+		WHERE MSG_NUM
+		= #{msgNum}
+		AND RECEIVER_NUM = #{receiverNum}
+	</update>
+
+	<update id="updateSendMessageImportant"
+		parameterType="MessageVO">
+		UPDATE TB_MESSAGE
+		SET MSG_IMPORTANT = 'Y'
+		WHERE MSG_NUM =
+		#{msgNum}
+	</update>
+
+	<update id="updateReceiveMessageImportant"
+		parameterType="MessageReceiverVO">
+		UPDATE TB_MSG_RECEIVER
+		SET MSG_REC_IM = 'Y'
+		WHERE MSG_NUM
+		= #{msgNum}
+		AND RECEIVER_NUM = #{receiverNum}
+	</update>
+
+	<update id="deleteSendMessageImportant"
+		parameterType="MessageVO">
+		UPDATE TB_MESSAGE
+		SET MSG_IMPORTANT = 'N'
+		WHERE MSG_NUM =
+		#{msgNum}
+	</update>
+
+	<update id="deleteReceiveMessageImportant"
+		parameterType="MessageReceiverVO">
+		UPDATE TB_MSG_RECEIVER
+		SET MSG_REC_IM = 'N'
+		WHERE MSG_NUM
+		= #{msgNum}
+		AND RECEIVER_NUM = #{receiverNum}
+	</update>
+
+	<select id="selectMember" parameterType="ColleagueVO"
+		resultType="String">
+		SELECT A.MEM_ID
+		FROM TB_MEMBER A, TB_COLLEAGUE B
+		WHERE
+		A.MEM_ID = B.MEM_ID
+		AND A.MEM_NAME = #{memName}
+		AND B.PJ_ID = #{pjId}
+	</select>
+	
+	<select id="selectMessageReceiveDetail" parameterType="MessageReceiverVO" resultMap="receiveList">
+		SELECT A.MSG_NUM, A.PJ_ID, A.MSG_TITLE,
+				A.MSG_CONTENT,
+				A.MSG_IMPORTANT,
+				A.MSG_DATE, A.MSG_DEL_YN,
+				A.MSG_WRITER_ID, A.MSG_CODE,
+				B.RECEIVER_NUM, B.READ_DATE, B.MSG_REC_DEL, B.MSG_REC_IM
+		FROM TB_MESSAGE A,
+		TB_MSG_RECEIVER B
+		WHERE A.MSG_NUM = B.MSG_NUM
+		AND B.MSG_NUM = #{msgNum}
+		AND (
+		B.RECEIVER_NUM = #{receiverNum}
+		)
+	</select>
+	
+	<select id="selectMessageSendDetail" parameterType="MessageVO" resultMap="sendList">
+		SELECT A.MSG_NUM, A.PJ_ID, A.MSG_TITLE,
+				A.MSG_CONTENT,
+				A.MSG_IMPORTANT,
+				A.MSG_DATE, A.MSG_DEL_YN,
+				A.MSG_WRITER_ID, A.MSG_CODE,
+				B.RECEIVER_NUM, B.READ_DATE, B.MSG_REC_DEL, B.MSG_REC_IM
+		FROM TB_MESSAGE A,
+		TB_MSG_RECEIVER B
+		WHERE A.MSG_NUM = B.MSG_NUM
+		AND A.MSG_NUM = #{msgNum}
+		AND (
+		A.MSG_WRITER_ID = #{msgWriterId}
+		)
+	</select>
+</mapper>

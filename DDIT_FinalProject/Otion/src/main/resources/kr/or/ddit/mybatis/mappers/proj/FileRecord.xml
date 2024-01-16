@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- [[개정이력(Modification Information)]] -->
+<!-- 수정일 수정자 수정내용 -->
+<!-- ========== ====== ============== -->
+<!-- 2022. 8. 27.} 고정현 삽입 구문 -->
+<!-- Copyright (c) 2022 by DDIT All right reserved -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.proj.filerecord.dao.FileRecordDAO">
+	<insert id="insertDownRecord" parameterType="FileRecordVO">
+		<selectKey keyProperty="downNum" keyColumn="DOWN_NUM" order="BEFORE" resultType="String">
+			SELECT fn_create_num(to_char(sysdate,'yymmdd'), 'TB_DOWNLOAD', 'DOWN_NUM',
+			UPPER('DOWN'))
+			FROM DUAL
+		</selectKey>
+		INSERT INTO
+			TB_DOWNLOAD(
+				DOWN_NUM
+				,PJ_ID
+				,ATTATCH_NUM
+				,ATTATCH_ORDER
+				,DOWNLOADER_ID
+				,WORKSTORAGE_NUM
+			)
+		VALUES
+			(
+				#{downNum}
+				,#{pjId}
+				,#{attatchNum,jdbcType=VARCHAR}
+				,#{attatchOrder,jdbcType=NUMERIC}
+				,#{downloaderId,jdbcType=VARCHAR}
+				,#{workstorageNum,jdbcType=VARCHAR}
+			)
+	</insert>
+	
+	<insert id="insertGitDownRecord" parameterType="FileRecordVO">
+		<selectKey keyProperty="downNum" keyColumn="DOWN_NUM" order="BEFORE" resultType="String">
+			SELECT fn_create_num(to_char(sysdate,'yymmdd'), 'TB_DOWNLOAD', 'DOWN_NUM',
+			UPPER('DOWN'))
+			FROM DUAL
+		</selectKey>
+		INSERT INTO
+			TB_DOWNLOAD(
+				DOWN_NUM
+				,PJ_ID
+				,DOWNLOADER_ID
+				,WORKSTORAGE_NUM
+			)
+		VALUES
+			(
+				#{downNum}
+				,#{pjId}
+				,#{downloaderId,jdbcType=VARCHAR}
+				,#{workstorageNum,jdbcType=VARCHAR}
+			)
+	</insert>
+	
+	<resultMap type="FileRecordVO" id="recordList" autoMapping="true">
+		<id property="downNum" column="DOWN_NUM"/>
+		<association property="attatch" javaType="AttatchVO" autoMapping="true" />
+	</resultMap>
+	
+	<select id="selectDownList" parameterType="PagingVO" resultMap="recordList">
+		SELECT *
+		FROM (
+		SELECT ROWNUM RNUM, A.*, B.ATTATCH_PLACE, B.FILE_PATH, B.ORIGIN_NM, B.SAVE_NM, B.ATTATCH_TYPE, 
+				B.ATTATCH_SIZE, B.DOWN_NUMBER, TO_CHAR(B.ATTATCH_DATE, 'YYYY-MM-DD HH24') AS ATTATCH_DATE,
+				B.UPLOADER_ID
+		  FROM TB_DOWNLOAD A, TB_ATTATCH B
+		 WHERE A.ATTATCH_NUM = B.ATTATCH_NUM
+		   AND A.ATTATCH_ORDER = B.ATTATCH_ORDER
+		   AND A.DOWNLOADER_ID = #{colleague.memId}
+		   AND A.PJ_ID = #{colleague.pjId}
+		   <include refid="search" />
+		)
+		 <![CDATA[
+  		WHERE RNUM >= #{startRow} AND RNUM <=#{endRow}
+  		 ]]>
+	</select>
+	
+	<sql id="search">
+		<trim prefix="AND">
+			<if
+				test="simpleCondition neq null" >
+				<choose>
+					<when test="simpleCondition.searchType eq 'all'">
+						<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">	
+						INSTR(ORIGIN_NM,#{simpleCondition.searchWord}) > 0
+						</if>
+					</when>
+					<when test="simpleCondition.searchType eq 'upload'">
+						<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+						INSTR(ORIGIN_NM,#{simpleCondition.searchWord}) > 0
+						</if>
+					</when>
+					<when test="simpleCondition.searchType eq 'download'">
+						<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+						INSTR(ORIGIN_NM,#{simpleCondition.searchWord}) > 0
+						</if>
+					</when>
+				</choose>
+			</if>
+			<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord) 
+					and @org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchType)">
+				
+			</if>
+		</trim>
+	</sql>
+	
+	<select id="selectTotalRecord" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(*)
+		  FROM TB_WFOLDER A, TB_WFOLDER_FILE B, TB_ATTATCH C
+		 WHERE A.WFOLDER_NUM = B.WFOLDER_NUM
+		   AND B.ATTATCH_NUM = C.ATTATCH_NUM
+		   AND A.COL_NUM = #{colleague.colNum}
+		<include refid="search" />
+	</select>
+	
+	<select id="selectTotalGitRecord" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(*)
+		  FROM TB_WORK_STORAGE A, TB_ATTATCH B
+		 WHERE A.WORK_STORAGE_NUM = B.ATTATCH_PLACE
+		   AND A.PJ_ID = #{colleague.pjId}
+		   AND B.UPLOADER_ID = #{colleague.memId}
+		   <include refid="search" />
+	</select>
+	
+	<select id="selectGitUploadList" parameterType="PagingVO" resultType="AttatchVO">
+		SELECT *
+		FROM (SELECT ROWNUM RNUM,B.ATTATCH_NUM, B.ATTATCH_ORDER, B.ATTATCH_PLACE, B.FILE_PATH, B.ORIGIN_NM, B.SAVE_NM, B.ATTATCH_TYPE, 
+				B.ATTATCH_SIZE, B.DOWN_NUMBER, TO_CHAR(B.ATTATCH_DATE, 'YYYY-MM-DD HH24') AS ATTATCH_DATE,
+				B.UPLOADER_ID
+			  FROM TB_WORK_STORAGE A, TB_ATTATCH B
+			  WHERE A.WORK_STORAGE_NUM = B.ATTATCH_PLACE
+			   AND A.PJ_ID = #{colleague.pjId}
+			   AND B.UPLOADER_ID = #{colleague.memId}
+			   <include refid="search" />
+			   )
+ 		<![CDATA[
+  		WHERE RNUM >= #{startRow} AND RNUM <=#{endRow}
+  		 ]]>
+	</select>
+	
+	<select id="selectUploadList" parameterType="PagingVO" resultType="AttatchVO">
+		SELECT *
+		FROM (
+		SELECT ROWNUM RNUM,C.ATTATCH_NUM, C.ATTATCH_ORDER, C.ATTATCH_PLACE, C.FILE_PATH, C.ORIGIN_NM, C.SAVE_NM, C.ATTATCH_TYPE, 
+				C.ATTATCH_SIZE, C.DOWN_NUMBER, TO_CHAR(C.ATTATCH_DATE, 'YYYY-MM-DD HH24') AS ATTATCH_DATE,
+				C.UPLOADER_ID
+		  FROM TB_WFOLDER A, TB_WFOLDER_FILE B, TB_ATTATCH C
+		 WHERE A.WFOLDER_NUM = B.WFOLDER_NUM
+		   AND B.ATTATCH_NUM = C.ATTATCH_NUM
+		   AND A.COL_NUM = #{colleague.colNum}
+		 
+		<include refid="search" />
+		)
+		 <![CDATA[
+  		WHERE RNUM >= #{startRow} AND RNUM <=#{endRow}
+  		 ]]>
+	</select>
+	
+	<select id="selectDownTotalRecord" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(*)
+		  FROM TB_DOWNLOAD
+		 WHERE PJ_ID = #{colleague.pjId}
+		   AND DOWNLOADER_ID = #{colleague.memId}
+	</select>
+	
+	<select id="selectUploadView" parameterType="AttatchVO" resultType="AttatchVO">
+		SELECT *
+		  FROM TB_ATTATCH
+		 WHERE ATTATCH_NUM = #{attatchNum}
+		   AND ATTATCH_ORDER = #{attatchOrder}
+	</select>
+</mapper>
