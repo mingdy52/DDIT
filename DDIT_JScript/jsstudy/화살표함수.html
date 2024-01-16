@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <title>Page Title</title>
+</head>
+<body>
+<!--
+    Arrow Function(화살표함수)
+    보이는 모습은 자바의 람다와 비슷,
+    스크립트에서는 단순히 function 키워드를 줄여서 쓰려는 용도
+    this 를 사용함에 제약사항이 있기 때문에, this 관련해서 에러가 나면
+    굳이 제약사항을 해결하려하지말고 그냥 function 키워드를 사용하는 것을 권장
+    그게 맘이 편함
+    callback 함수 사용이 많아짐에 가독성 표현이 중요
+    바꾸는 법은 function 키워드를 없애고 () enldp => 만 넣으면 긑
+-->
+
+<script>
+    // 쓰기 싫으면 안 써도 그만인데, 회사 분위기가 문제
+    // 좀만 써보면 금방 익숙해 져용, 포인트는 아주 있어보여용
+/*
+    var f_myfunc = function(){
+        alert("난")
+    }
+*/
+/*
+    const f_myfunc = (p_arg)=>{
+        alert(`${p_arg}난 최보영 자꾸 보영 많이 보영 또 보영`);
+    }
+*/
+    // const f_myfunc = p_arg => `$p_arg 자꾸 보영 많이 보영 또 보영`;
+    // 정확히 위 라인과 동일
+    const f_myfunc = (p_arg)=>{
+        return `${p_arg} 자꾸 보영 많이 보영 또 보영`;
+    }
+
+    alert(f_myfunc("최보영"));
+</script>
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Block Editor 사용법 정리.. 미완성</title>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/attaches@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/header@latest"></script> 
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/underline@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@editorjs/image@2.3.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/editorjs-text-color-plugin@1.12.1/dist/bundle.js"></script>
+<style>
+    #editorjs {
+        border:1px dashed pink;
+    }
+    h1,h2 {
+        text-align: center;
+    }
+</style> 
+</head>
+<body>
+    <!-- 추가 플러그인 검색 https://github.com/editor-js 
+        요기서 읽고 테스트하면서 기능 확장
+    -->
+    <h1><a href="https://editorjs.io/">블록 에디터</a></h1>
+    <h2>음 몇번 꼼지락거려보니 대충 싸용버블 아라먹겠네용 </h2>
+    <button onclick="f_loadTest()"> 로띵 </button>
+    <button onclick="f_saveTest()"> 쩌장 </button>
+    <div id="editorjs"></div>
+    <script>
+    //문서에서 우선 필요하다고 생각되는 부분 긁어 옴
+    function f_loadTest(){
+        editor.render({
+        time: 1552744582955,
+        blocks: [
+          {
+            type: "header",
+            data: {
+              text: "아니 아니 문서가 별로 안 친절해용~~ㅠㅠ?",
+              level:1
+            }
+          },
+          {
+            type: "paragraph",
+            data: {
+              text: '<u class="cdx-underline"><b><i>그런가요</i></b></u>'
+            }
+          },
+          {
+            type: "header",
+            data: {
+              text: "아니 아니 아니하지는 못하리랑?",
+              level:2
+            }
+          },
+        ],
+        version: "2.25.0"
+      }
+    )
+    }
+
+    let v_tempData = {
+        time: 1552744582955,
+        blocks: [
+          {
+            type: "header",
+            data: {
+              text: "이렇게만 읽어와야 하나용? 그런가요?",
+              level:1
+            }
+          }
+        ],
+        version: "2.25.0"
+      }
+
+    function f_saveTest(){
+        editor.save().then((outputData) => {
+            console.log('Article data: ', outputData)
+        }).catch((error) => {
+            console.log('Saving failed: ', error)
+        });
+    }
+
+    const editor = new EditorJS({
+        holder: 'editorjs',
+        data:v_tempData,
+        tools: {
+            attaches: {
+                class: AttachesTool,
+                config: {
+                    endpoint: 'upload URL'
+                }
+            },
+            header: Header,
+            underline: Underline,
+            image: {
+                class: ImageTool,
+                config: {
+                    endpoints: {
+                        byFile: 'http://localhost:8008/uploadFile',
+                        byUrl: 'http://localhost:8008/fetchUrl',
+                    }
+                }
+            },
+            Color: {
+                class: ColorPlugin,
+                config: {
+                    colorCollections: ['#EC7878','#9C27B0','#673AB7','#3F51B5','#0070FF','#03A9F4','#00BCD4','#4CAF50','#8BC34A','#CDDC39', '#FFF'],
+                    defaultColor: '#FF1300',
+                    type: 'text', 
+                }     
+            },
+            Marker: {
+                class: ColorPlugin,
+                config: {
+                    defaultColor: '#FFBF00',
+                    type: 'marker', 
+                }       
+            }
+        }
+    });
+    </script>
+</body>
+</html>

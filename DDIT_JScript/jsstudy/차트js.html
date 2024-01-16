@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+</head>
+<body>
+<!--데이타 시각화의 최고봉은 d3.js, 많이 쓰는 건 chart.js-->
+<!-- 부모 element 사이즈 기준으로 차트 크기가 자동으로 결정 됨-->
+<input type="button" value="데이타바꾸깅" onclick="f_change()">
+<div style="width:800px;height:800px"> 
+    <canvas id="myChart"></canvas>
+</div>
+<script>
+function f_ranArrData(){
+    var v_arrData = [];
+    for(var i=1; i<=6; i++){
+        v_arrData.push(Math.ceil(Math.random()*45))
+    }
+    return v_arrData;
+}    
+var v_addData = {
+            type:"line", // line과 bar만 Mix가 가능 
+            label: '채원이 뽀드락지 이마 약간 붉음',
+            data: [22, 29, 33, 50, 21, 31],
+            backgroundColor: [
+                'rgba(255, 99, 132, 0.2)',
+                'rgba(54, 162, 235, 0.2)',
+                'rgba(255, 206, 86, 0.2)',
+                'rgba(75, 192, 192, 0.2)',
+                'rgba(153, 102, 255, 0.2)',
+                'rgba(255, 159, 64, 0.2)'
+            ],
+            borderColor: [
+                'rgba(255, 99, 132, 1)',
+                'rgba(54, 162, 235, 1)',
+                'rgba(255, 206, 86, 1)',
+                'rgba(75, 192, 192, 1)',
+                'rgba(153, 102, 255, 1)',
+                'rgba(255, 159, 64, 1)'
+            ],
+            borderWidth: 1  
+}
+
+function f_change(){
+    //myChart.type="doughnut"; //type 바꾸는 것만 조금 특별
+    myChart.data.datasets[0].type="bar"; 
+    myChart.data.datasets[0].label = "분당 서현역에 최서현이 사라용";
+    myChart.data.labels = ["이승준","최보영","박예린","윤수웅","고정현","박채록"];
+    myChart.data.datasets[0].data = f_ranArrData();
+    myChart.data.datasets[1].data = f_ranArrData();
+    myChart.update(); // 사용하는데 가장 중요한 메소드
+    setTimeout(f_change,500);  // 재귀호출, 실시간인양 사기치깅
+}    
+
+// 그래픽엔진 가져오는 구문, 다이렉트X 유명, OpenGL
+const ctx = document.getElementById('myChart').getContext('2d');
+const myChart = new Chart(ctx, {
+    type: 'bar', // bar, line, radar,pie,doughnut 등등
+    data: {
+        labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+        datasets: [{
+            label: '# of Votes',
+            data: [12, 19, 3, 5, 2, 3],
+            backgroundColor: [
+                'rgba(255, 99, 132, 0.2)',
+                'rgba(54, 162, 235, 0.2)',
+                'rgba(255, 206, 86, 0.2)',
+                'rgba(75, 192, 192, 0.2)',
+                'rgba(153, 102, 255, 0.2)',
+                'rgba(255, 159, 64, 0.2)'
+            ],
+            borderColor: [
+                'rgba(255, 99, 132, 1)',
+                'rgba(54, 162, 235, 1)',
+                'rgba(255, 206, 86, 1)',
+                'rgba(75, 192, 192, 1)',
+                'rgba(153, 102, 255, 1)',
+                'rgba(255, 159, 64, 1)'
+            ],
+            borderWidth: 1
+        },v_addData]
+    },
+    options: {
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+//chart.js 잘 쓰깅, json구조랑 
+// update()-다시그리깅 보통 멋지게 rendering이라고 말함  파악만 되면 끝, 
+//alert(myChart.data.datasets[0].data); //값 확인
+
+</script>  
+</body>
+</html>

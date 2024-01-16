@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<meta charset='utf-8'>
+<script>
+    // Promise 꼬옥 알아야 함
+    // 처음보면 낯선데, 실제로 직접 만들어 쓸 일은 거의 없고, 잘 쓰기만 하면 됨
+    // 비동기는 인간의 뇌 생각방식에 잘 맞지 않아서, 조금 어렵게 Promise 가 만들어짐
+    // 받아들여야 익숙해 짐
+
+    // 기본 틀
+    let firstPromise = new Promise((res, rej)=> {
+        // res("썽공");
+        rej("재원인 집이 가까웡!");
+    });
+
+    // firstPromise.then((p_rslt)=> { // then 의 return 도 Promise
+    //     return p_rslt + "메롱"; // 실제 return 되는 것이 문자열이 아님에 주의
+    // }).then(function(p_res){
+    //     alert(p_res);
+    // })
+
+    firstPromise.then((p_rslt)=> { // then 의 return 도 Promise
+        return p_rslt + "메롱"; // 실제 return 되는 것이 문자열이 아님에 주의
+    }).catch((p_err)=> {
+        alert("실패지용 " + p_err);
+    }).finally(()=> {
+        alert("요긴 무조건 실행 되지용");
+    });
+</script>

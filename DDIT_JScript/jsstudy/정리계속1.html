@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<script>
+    // 데이터 타입은 크게 기본(primitive)형과 객체(Object) 타입이 있음
+    // 하드웨어 발전 속도를 소프트웨어가 따라 가질 못해서
+    // 생산성 향상을 위해서 객체지향 언어를 설계하게 됨
+    // .을 쓸 수 없으면 기본형, .을 쓸 수 있으면 객체
+    // 숫자(number), 문자열(string), 불린(boolean) 은 기본형
+    // 배열/JSON 은 객체
+
+    // 기본형은 복사(call by value), 객체는 참조(call by reference)
+
+    
+    var v_str1 = "윤지영";
+    var v_str2 = v_str1;
+    v_str1 = "희연쌤은 로봇 by.이철희 선생님";
+
+    // .을 찍어 쓰면 몰래 뒤에서 Wrapper 객체 String 으로 바뀜
+    alert(v_str1.substring(0,1)); //? 윤
+
+    alert(v_str2);
+    
+    /*
+
+   var v_arr = ["조채원", "지각", "왜안왔지"];
+   var v_arr2 = v_arr;
+   v_arr2[2] = "내일 만나";
+   alert(v_arr[2]);
+   alert(v_arr2[2]);
+   */
+</script>

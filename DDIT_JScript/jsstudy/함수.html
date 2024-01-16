@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<script>
+    // 자바스크립트에서 가장 중요한 function
+    // DRY(Do not Repeat Yourself) 개발자는 중복을 싫어해서 제거하고픔
+    // refactoring
+    // 자바스크립트에는 특별히 namespace 기능
+/*
+    for(var i = 3; i < 10; i++){
+        alert("창규는 천재" + 1);
+    }
+
+    for(var i = 5; i < 7; i++){
+        alert("혜인인 천재" + 1);
+    }
+
+    for(var i = 1; i < 20; i++){
+        alert("채원인 천재" + 1);
+    }
+*/  
+    f_doctor(3, 10, "창규는 천재");
+    f_doctor(5, 7, "혜인인 천재");
+    f_doctor(1, 20, "채원인 천재");
+
+    function f_doctor(p_arg1, p_arg2, p_arg3){
+        for(var i = p_arg1; i < p_arg2; i++){
+            alert(p_arg3W + 1);
+        }
+    }
+
+</script>

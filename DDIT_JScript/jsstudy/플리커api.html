@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <title>Page Title</title>
+</head>
+<body>
+    <div id="id_disp"></div>
+<script>
+    function jsonFlickrFeed(p_jsonData){
+        var v_items = p_jsonData.items;
+        for(var i = 0; i<v_items.length; i++){
+            // id_disp.innerHTML += v_items[i].media.m + "<br>";
+            var v_img = document.createElement("img");
+            v_img.src = v_items[i].media.m;
+            id_disp.appendChild(v_img);
+        }
+    }
+// 이렇게 데이타를 넘겨주는 것을 JSONP => JSON PADDING 이라고 부름
+// script 태그는 src 속성을 사용시 Cross-Origin 의 제약에서 벗어남을 알 수 있음
+</script>
+<script src="https://www.flickr.com/services/feeds/photos_public.gne?tags=cat&format=json"></script>
+</body>
+</html>

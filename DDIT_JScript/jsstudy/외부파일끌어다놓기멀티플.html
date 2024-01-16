@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+<style>
+    #id_drop {
+        width:300px;
+        height:300px;
+        border:1px solid pink; 
+        /* 항상 영역나누기 할 땐 일단 border를 설정, 나중에 주석처리하면 그만 */
+    }
+</style>
+</head>
+<body>
+    <div id="id_drop" ondragover="f_over()" ondrop="f_drop()">
+        여기에 파일을 끌어다 놓으세용
+    </div>
+<script>
+    // 이 파일을 잘 가지고 있다가 사용합니다.
+    // 거의 이렇게밖에 사용하지 않으니
+    var v_div = document.querySelector("#id_drop");
+    //외부파일 끌어다 놓을 시, 브라우져가 읽을 수 있는 파일은 자동으로
+    //읽기 때문에 막아야 하는데, dragover, drop 두 이벤트를 막아야 함
+    function f_over(){
+        //event.stopPropagation(); // 이벤트 버블링을 이벤트 캡쳐링으로
+        event.preventDefault(); // 기본 장착이벤트 기능 막기
+    }
+    //파일1개씩 읽는 함수
+    //비동기를 별도함수로 만들어서 개별처리
+    function f_fileRead(p_file){
+            var v_fileReader = new FileReader(); // 파일 읽어주는 아저씨 생성
+            v_fileReader.onload = function(){ // 다 읽으면 자동으로 이벤트 발생
+                var v_img = document.createElement("img"); 
+                v_img.src = v_fileReader.result;
+                v_img.width = 100;
+                v_img.height = 100;
+                v_div.appendChild(v_img);//문서에 추가 해주어야만 누네띠넹
+
+            }
+            v_fileReader.readAsDataURL(p_file); // 파일 읽으라고 찌시
+    }
+    function f_drop(){
+        event.preventDefault();
+        v_div.innerHTML = "";
+        //요기서 원하는 것 초리
+        var v_fileList = event.dataTransfer.files; // 요거만 알면 나머진 처리
+        for(var i=0; i<v_fileList.length; i++) {
+            f_fileRead(v_fileList[i]);
+        }
+    }
+    //div 밖에다 가져다 놓는 것도 막아야 함
+    window.addEventListener("dragover",function(){
+        event.preventDefault();
+    })
+    window.addEventListener("drop",function(){
+        event.preventDefault();
+    })
+</script>    
+</body>
+</html>
